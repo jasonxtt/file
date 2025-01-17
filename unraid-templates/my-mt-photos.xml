@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>mt-photos</Name>
+  <Repository>mtphotos/mt-photos:latest</Repository>
+  <Registry/>
+  <Network>host</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support/>
+  <Project/>
+  <Overview/>
+  <Category/>
+  <WebUI>http://10.0.0.8:8063</WebUI>
+  <TemplateURL/>
+  <Icon>http://127.0.0.1/mnt/user/appdata/icon/mt-photos.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1730647058</DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="&#x8BBE;&#x7F6E;" Target="/config" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/mt-photos/config</Config>
+  <Config Name="&#x56FE;&#x5E93;" Target="/upload" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/phtots/MT Photos/</Config>
+  <Config Name="unraid&#x5907;&#x4EFD;&#x8DEF;&#x5F84;" Target="/backup" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/phtots/&#x5907;&#x4EFD;/</Config>
+  <Config Name="webui" Target="8063" Default="8063" Mode="tcp" Description="" Type="Port" Display="always" Required="false" Mask="false">8063</Config>
+  <Config Name="Host Key 1" Target="TZ" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">Asia/Shanghai</Config>
+  <Config Name="Host Key 2" Target="PUID" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">1000</Config>
+  <Config Name="Host Key 3" Target="PGID" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">100</Config>
+  <Config Name="Host Key 4" Target="LANG" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">C.UTF-8</Config>
+  <Config Name="Host Key 5" Target="UMASK" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">022</Config>
+</Container>

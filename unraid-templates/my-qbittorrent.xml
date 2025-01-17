@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>qbittorrent</Name>
+  <Repository>linuxserver/qbittorrent:14.3.9</Repository>
+  <Registry>https://github.com/orgs/linuxserver/packages/container/package/qbittorrent</Registry>
+  <Network>eth1</Network>
+  <MyIP>10.0.0.30</MyIP>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/linuxserver/docker-qbittorrent/issues/new/choose</Support>
+  <Project>https://www.qbittorrent.org/</Project>
+  <Overview>The Qbittorrent(https://www.qbittorrent.org/) project aims to provide an open-source software alternative to &#xB5;Torrent. qBittorrent is based on the Qt toolkit and libtorrent-rasterbar library.</Overview>
+  <Category>Downloaders:</Category>
+  <WebUI>http://[IP]:[PORT:8085]</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/linuxserver/templates/master/unraid/qbittorrent.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/qbittorrent-logo.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1736152398</DateInstalled>
+  <DonateText>Donations</DonateText>
+  <DonateLink>https://www.linuxserver.io/donate</DonateLink>
+  <Requires/>
+  <Config Name="WebUI&#x7AEF;&#x53E3;" Target="8085" Default="8085" Mode="tcp" Description="WebUI" Type="Port" Display="always" Required="true" Mask="false">8085</Config>
+  <Config Name="p2p&#x4F20;&#x8F93;&#x7AEF;&#x53E3;" Target="63219" Default="63219" Mode="tcp" Description="tcp connection port" Type="Port" Display="always" Required="true" Mask="false">63219</Config>
+  <Config Name="&#x4E0B;&#x8F7D;&#x8DEF;&#x5F84;" Target="/user/download/" Default="" Mode="rw" Description="Location of downloads on disk." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/download/</Config>
+  <Config Name="WEBUI&#x7AEF;&#x53E3;" Target="WEBUI_PORT" Default="8085" Mode="" Description="for changing the port of the webui, see below for explanation" Type="Variable" Display="always" Required="true" Mask="false">8085</Config>
+  <Config Name="&#x5237;&#x6D41;&#x8DEF;&#x5F84;" Target="/user/sl" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/u.2/sl/</Config>
+  <Config Name="Appdata" Target="/config" Default="/mnt/user/appdata/qbittorrent" Mode="rw" Description="Contains all relevant configuration files." Type="Path" Display="advanced" Required="true" Mask="false">/mnt/user/appdata/qbittorrent/config/</Config>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="{3}" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">1000</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="{3}" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
+  <Config Name="UMASK" Target="UMASK" Default="022" Mode="{3}" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">022</Config>
+</Container>

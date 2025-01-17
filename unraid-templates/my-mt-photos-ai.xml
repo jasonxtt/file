@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>mt-photos-ai</Name>
+  <Repository>mtphotos/mt-photos-ai:onnx-latest</Repository>
+  <Registry>https://hub.docker.com/r/mtphotos/mt-photos-ai</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://mtmt.tech/contact</Support>
+  <Project>https://mtmt.tech</Project>
+  <Overview>MT Photos&#x667A;&#x80FD;&#x8BC6;&#x522B;API&#x670D;&#x52A1;</Overview>
+  <Category>Productivity: MediaApp:Photos</Category>
+  <WebUI>http://[IP]:[PORT]/</WebUI>
+  <TemplateURL/>
+  <Icon>https://cdn.mtmt.tech/logo-ai-r.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1734570305</DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="&#x7AEF;&#x53E3;&#x6620;&#x5C04;1" Target="8060" Default="8060" Mode="tcp" Description="MT Photos AI&#x670D;&#x52A1;&#x7AEF;&#x53E3;" Type="Port" Display="always" Required="true" Mask="{8}">8060</Config>
+  <Config Name="API_AUTH_KEY" Target="API_AUTH_KEY" Default="mt_photos_ai_extra_secret" Mode="" Description="&#x9A8C;&#x8BC1;&#x8BBF;&#x95EE;&#x6765;&#x6E90;&#x7684;API_AUTH_KEY" Type="Variable" Display="always" Required="false" Mask="false">mt_photos_ai_extra_secret</Config>
+</Container>

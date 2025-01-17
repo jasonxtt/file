@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>speedtest</Name>
+  <Repository>adolfintel/speedtest</Repository>
+  <Registry>https://hub.docker.com/r/adolfintel/speedtest/</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://hub.docker.com/r/adolfintel/speedtest/</Support>
+  <Project/>
+  <Overview>Self-hosted HTML5 Speedtest&#xD;
+&#xD;
+Converted By Community Applications   Always verify this template (and values)  against the support page for the container&#xD;
+&#xD;
+https://hub.docker.com/r/adolfintel/speedtest/</Overview>
+  <Category/>
+  <WebUI>http://[IP]:[PORT:12345]/</WebUI>
+  <TemplateURL/>
+  <Icon>https://lsky.gc.959527.xyz/i/2024/12/06/6751d01030d2f.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1735726443</DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="Host Port 1" Target="80" Default="" Mode="tcp" Description="" Type="Port" Display="always" Required="false" Mask="false">12345</Config>
+  <Config Name="Host Label 1" Target="traefik.enable" Default="" Mode="" Description="" Type="Label" Display="always" Required="false" Mask="false">true</Config>
+  <Config Name="Host Label 2" Target="traefik.http.routers.speed.rule" Default="" Mode="" Description="" Type="Label" Display="always" Required="false" Mask="false">Host(`speed.你的域名.com`)</Config>
+  <Config Name="Host Label 3" Target="traefik.http.services.speed.loadbalancer.server.port" Default="" Mode="" Description="" Type="Label" Display="always" Required="false" Mask="false">80</Config>
+</Container>

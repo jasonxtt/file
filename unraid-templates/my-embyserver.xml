@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>embyserver</Name>
+  <Repository>amilys/embyserver:beta</Repository>
+  <Registry>https://hub.docker.com/r/amilys/embyserver/</Registry>
+  <Network>host</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>true</Privileged>
+  <Support>https://hub.docker.com/r/amilys/embyserver/</Support>
+  <Project/>
+  <Overview>emby&#x81EA;&#x4F9B;&#x7248; &#x4EA4;&#x6D41;&#x7FA4;&#xFF1A;433493451&#xD;
+&#xD;
+Converted By Community Applications   Always verify this template (and values)  against the support page for the container&#xD;
+&#xD;
+https://hub.docker.com/r/amilys/embyserver/&#xD;
+1</Overview>
+  <Category/>
+  <WebUI>http://[IP]:[PORT:8096]/</WebUI>
+  <TemplateURL/>
+  <Icon>https://lsky.gc.959527.xyz/i/2024/11/04/67283c908e998.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1734611873</DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="Container Path 1" Target="/config" Default="/mnt/user/appdata/embyserver" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/embyserver</Config>
+  <Config Name="Container Port 3" Target="8096" Default="8096" Mode="tcp" Description="" Type="Port" Display="always" Required="false" Mask="false">8096</Config>
+  <Config Name="Container Variable 10" Target="UID" Default="0" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">1000</Config>
+  <Config Name="Container Variable 11" Target="GID" Default="0" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">100</Config>
+  <Config Name="video" Target="/data" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/video</Config>
+  <Config Name="/dev/dri" Target="" Default="" Mode="" Description="" Type="Device" Display="always" Required="false" Mask="false">/dev/dri</Config>
+  <Config Name="Host Key 3" Target="UMASK" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">022</Config>
+</Container>

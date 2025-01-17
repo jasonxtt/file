@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>nginxWebUI</Name>
+  <Repository>docker.io/cym1102/nginxwebui:latest</Repository>
+  <Registry>https://hub.docker.com/r/cym1102/nginxwebui/</Registry>
+  <Network>host</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>true</Privileged>
+  <Support>https://hub.docker.com/r/cym1102/nginxwebui/</Support>
+  <Project/>
+  <Overview>nginxWebUI&#x662F;&#x4E00;&#x6B3E;&#x56FE;&#x5F62;&#x5316;&#x7BA1;&#x7406;nginx&#x914D;&#x7F6E;&#x5F97;&#x5DE5;&#x5177;, &#x53EF;&#x4EE5;&#x4F7F;&#x7528;&#x7F51;&#x9875;&#x6765;&#x5FEB;&#x901F;&#x914D;&#x7F6E;nginx&#x7684;&#x5404;&#x9879;&#x529F;&#x80FD;&#xD;
+&#xD;
+Converted By Community Applications   Always verify this template (and values)  against the support page for the container&#xD;
+&#xD;
+https://hub.docker.com/r/cym1102/nginxwebui/</Overview>
+  <Category/>
+  <WebUI>http://192.168.2.8:8080</WebUI>
+  <TemplateURL/>
+  <Icon>/mnt/user/appdata/icon/nginxwebui.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1718252584</DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="Container Path 1" Target="/home/nginxWebUI" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/nginxwebui</Config>
+  <Config Name="Host Key 4" Target="BOOT_OPTIONS" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">--server.port=8080</Config>
+</Container>

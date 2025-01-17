@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>Portainer-CE</Name>
+  <Repository>portainer/portainer-ce</Repository>
+  <Registry>https://hub.docker.com/r/portainer/portainer-ce</Registry>
+  <Network>host</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://forums.unraid.net/topic/116891-support-smartphonelover-portainer-ce/</Support>
+  <Project>https://github.com/portainer/portainer</Project>
+  <Overview>DESCRIPTION&#xD;
+Portainer Community Edition (CE) is a lightweight service delivery platform for containerized applications that can be used to manage Docker, Swarm, Kubernetes and ACI environments. It is designed to be as simple to deploy as it is to use. The application allows you to manage all your orchestrator resources (containers, images, volumes, networks and more) through a &#x2018;smart&#x2019; GUI and/or an extensive API.&#xD;
+&#xD;
+NOTES&#xD;
+&#x2022; If you would like to extend the capabilities of Portainer, getting extra features over containers, networks, volumes and images, you will need to install the Portainer Agent separately. Search for 'Portainer-Agent' from my docker templates.&#xD;
+&#xD;
+VERSION&#xD;
+1.0 (2021-12-06)</Overview>
+  <Category>Tools:Utilities Network:Management</Category>
+  <WebUI>http://[IP]:[PORT:9000]</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/SmartPhoneLover/unraid-docker-templates/master/templates/Portainer-CE.xml</TemplateURL>
+  <Icon>https://lsky.gc.959527.xyz/i/2024/11/04/67283ac983211.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1736092298</DateInstalled>
+  <DonateText>If you like my work, please consider making a little donation.</DonateText>
+  <DonateLink>https://github.com/SmartPhoneLover/unraid-docker-templates/blob/main/DONATION.md</DonateLink>
+  <Requires/>
+  <Config Name="WebUI" Target="9000" Default="" Mode="tcp" Description="" Type="Port" Display="always" Required="false" Mask="false">9000</Config>
+  <Config Name="SSH Tunnel" Target="8000" Default="" Mode="tcp" Description="Used to connect to Edge Agent via SSH." Type="Port" Display="always" Required="false" Mask="false">8000</Config>
+  <Config Name="Docker Socket" Target="/var/run/docker.sock" Default="" Mode="rw" Description="Used to get information from Docker Socket from Host." Type="Path" Display="always" Required="false" Mask="false">/var/run/docker.sock</Config>
+  <Config Name="Directory (data)" Target="/data" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/portainer/data/</Config>
+  <Config Name="Host Path 3" Target="/mnt/user/appdata" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata</Config>
+</Container>

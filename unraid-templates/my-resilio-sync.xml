@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>resilio-sync</Name>
+  <Repository>lscr.io/linuxserver/resilio-sync</Repository>
+  <Registry>https://github.com/orgs/linuxserver/packages/container/package/resilio-sync</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/linuxserver/docker-resilio-sync/issues/new/choose</Support>
+  <Project>https://www.resilio.com/individuals/</Project>
+  <Overview>Resilio-sync(https://www.resilio.com/individuals/) (formerly BitTorrent Sync) uses the BitTorrent protocol to sync files and folders between all of your devices. There are both free and paid versions, this container supports both. There is an official sync image but we created this one as it supports user mapping to simplify permissions for volumes.</Overview>
+  <Category>Backup: Cloud: Network:Other Tools:Utilities</Category>
+  <WebUI>http://[IP]:[PORT:8888]/gui</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/linuxserver/templates/master/unraid/resilio-sync.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/resilio-sync-logo.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1730701304</DateInstalled>
+  <DonateText>Donations</DonateText>
+  <DonateLink>https://www.linuxserver.io/donate</DonateLink>
+  <Requires/>
+  <Config Name="WebUI" Target="8888" Default="8888" Mode="tcp" Description="WebUI" Type="Port" Display="always" Required="true" Mask="false">8888</Config>
+  <Config Name="Port: 55555" Target="55555" Default="55555" Mode="tcp" Description="Sync Port." Type="Port" Display="always" Required="true" Mask="false">55555</Config>
+  <Config Name="Path: /downloads" Target="/downloads" Default="" Mode="rw" Description="Folder for downloads/cache." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/u.2/temp/resilio_download/</Config>
+  <Config Name="Path: /sync" Target="/sync" Default="" Mode="rw" Description="Sync folders root." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/backup</Config>
+  <Config Name="Appdata" Target="/config" Default="/mnt/user/appdata/resilio-sync" Mode="rw" Description="Where resilio-sync should store its config file." Type="Path" Display="advanced" Required="true" Mask="false">/mnt/user/appdata/resilio-sync</Config>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="{3}" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">1000</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="{3}" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
+  <Config Name="UMASK" Target="UMASK" Default="000" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">022</Config>
+</Container>
