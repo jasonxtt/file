@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>FileBrowser</Name>
+  <Repository>filebrowser/filebrowser</Repository>
+  <Registry>https://hub.docker.com/r/filebrowser/filebrowser</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/filebrowser/filebrowser/issues</Support>
+  <Project>https://github.com/filebrowser/filebrowser</Project>
+  <Overview>File Browser provides a file managing interface within a specified directory and it can be used to upload, delete, preview, rename and edit your files. It allows the creation of multiple users and each user can have its own directory.&#xD;
+&#xD;
+This software was created by the File Browser Team. This container is pulled from the official File Browser repo and has been configured for simple one-click install with improved instructions and configs.&#xD;
+&#xD;
+Instructions:&#xD;
+1. Set desired webUI port (Default 8080)&#xD;
+2. Set the directory you wish to access from the webUI&#xD;
+3. Deploy!&#xD;
+4. Login with the default credentials, User: admin, Pass: admin&#xD;
+5. Change the default password asap!&#xD;
+6. Enjoy!&#xD;
+&#xD;
+Part of the Plug-and-Play-Docker Repo set of apps by logandwaters.&#xD;
+&#xD;
+Helpful links Below.&#xD;
+&#xD;
+Official GitHub Repo: https://github.com/filebrowser/filebrowser&#xD;
+Official Docs: https://filebrowser.org/&#xD;
+Report Software Issues: https://github.com/filebrowser/filebrowser/issues&#xD;
+Report Container Template Issue: https://github.com/logandwaters/Plug-and-Play-Docker/issues</Overview>
+  <Category>Cloud: Productivity: Tools:Utilities Other:</Category>
+  <WebUI>http://[IP]:[PORT:80]</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/logandwaters/Plug-and-Play-Docker/master/file_browser_pnp/file_browser_pnp.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/logandwaters/Plug-and-Play-Docker/refs/heads/main/file_browser_pnp/logo.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1735651051</DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="WebUI Port" Target="80" Default="8080" Mode="tcp" Description="Binds the Host Port (Default of 8080) to the internal container port of 80 for UI access" Type="Port" Display="always" Required="true" Mask="{8}">8082</Config>
+  <Config Name="Path of Directory to Access" Target="/srv" Default="" Mode="rw" Description="Specify the path you would like to access within the UI" Type="Path" Display="always" Required="true" Mask="{8}">/mnt/user</Config>
+  <Config Name="Path to Database" Target="/database.db" Default="" Mode="rw" Description="Path to the built-in database (do not change)" Type="Path" Display="always" Required="false" Mask="null">/mnt/user/appdata/filebrowser/database.db</Config>
+</Container>

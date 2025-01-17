@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>qinglong</Name>
+  <Repository>feverrun/qinglong:2.16.3</Repository>
+  <Registry>https://hub.docker.com/r/whyour/qinglong/</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://hub.docker.com/r/whyour/qinglong/</Support>
+  <Project/>
+  <Overview>A timed task management panel that supports typescript, javaScript, python3, and shell.&#xD;
+&#xD;
+Converted By Community Applications   Always verify this template (and values)  against the support page for the container&#xD;
+&#xD;
+https://hub.docker.com/r/whyour/qinglong/</Overview>
+  <Category/>
+  <WebUI>http://[IP]:[PORT:5700]</WebUI>
+  <TemplateURL/>
+  <Icon>http://127.0.0.1/mnt/user/appdata/icon/qinglong.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1718262742</DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="Container Path 1" Target="/ql/data" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/qinglong/</Config>
+  <Config Name="Container Port 1" Target="5700" Default="5700" Mode="tcp" Description="" Type="Port" Display="always" Required="false" Mask="false">5701</Config>
+  <Config Name="Host Key 1" Target="PUID" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">1000</Config>
+  <Config Name="Host Key 2" Target="PGID" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">100</Config>
+  <Config Name="Host Key 3" Target="UMASK" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">000</Config>
+</Container>

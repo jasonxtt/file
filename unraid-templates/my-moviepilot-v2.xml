@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>moviepilot-v2</Name>
+  <Repository>jxxghp/moviepilot-v2:latest</Repository>
+  <Registry>https://hub.docker.com/r/jxxghp/moviepilot-v2</Registry>
+  <Network>host</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support/>
+  <Project/>
+  <Overview/>
+  <Category/>
+  <WebUI>http://[IP]:[PORT:3008]/</WebUI>
+  <TemplateURL/>
+  <Icon>http://127.0.0.1/mnt/user/appdata/icon/mp.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1736077129</DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="config" Target="/config" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/moviepilot2.0/config</Config>
+  <Config Name="core" Target="/moviepilot" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/moviepilot2.0/core</Config>
+  <Config Name="user&#x76EE;&#x5F55;" Target="/user" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user</Config>
+  <Config Name="docker&#x63A7;&#x5236;&#x6743;" Target="/var/run/docker.sock" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/var/run/docker.sock</Config>
+  <Config Name="UI&#x8BBF;&#x95EE;&#x7AEF;&#x53E3;" Target="NGINX_PORT" Default="" Mode="" Description="&#x6309;&#x9700;&#x4FEE;&#x6539;" Type="Variable" Display="always" Required="false" Mask="false">3008</Config>
+  <Config Name="PUID" Target="PUID" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">1000</Config>
+  <Config Name="PGID" Target="PGID" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">100</Config>
+  <Config Name="UMASK" Target="UMASK" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">022</Config>
+  <Config Name="&#x65F6;&#x533A;" Target="TZ" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">Asia/Shanghai</Config>
+  <Config Name="&#x7BA1;&#x7406;&#x5458;&#x8D26;&#x53F7;" Target="SUPERUSER" Default="" Mode="" Description="&#x6309;&#x9700;&#x4FEE;&#x6539;" Type="Variable" Display="always" Required="false" Mask="false">admin</Config>
+  <Config Name="&#x4EE3;&#x7406;" Target="PROXY_HOST" Default="" Mode="" Description="&#x6309;&#x9700;&#x6DFB;&#x52A0;&#xFF0C;&#x683C;&#x5F0F;&#x5982;&#x4E0B;&#13;&#10;http://192.168.31.253:8888&#13;&#10;socks5://192.168.31.253:8888" Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="&#x8BA4;&#x8BC1;&#x7AD9;&#x70B9;&#x540D;&#x79F0;" Target="AUTH_SITE" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">iyuu</Config>
+  <Config Name="&#x8BA4;&#x8BC1;&#x7AD9;&#x70B9;2&#x8BA4;&#x8BC1;" Target="IYUU_SIGN" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">你的IYUU</Config>
+  <Config Name="&#x81EA;&#x52A8;&#x5347;&#x7EA7;" Target="MOVIEPILOT_AUTO_UPDATE" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">true</Config>
+  <Config Name="api&#x7AEF;&#x53E3;" Target="PORT" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">3001</Config>
+</Container>

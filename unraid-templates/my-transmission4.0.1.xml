@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>transmission4.0.1</Name>
+  <Repository>lscr.io/linuxserver/transmission:4.0.5</Repository>
+  <Registry>https://github.com/orgs/linuxserver/packages/container/package/transmission</Registry>
+  <Network>eth1</Network>
+  <MyIP>10.0.0.31</MyIP>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/linuxserver/docker-transmission/issues/new/choose</Support>
+  <Project>https://www.transmissionbt.com/</Project>
+  <Overview>Transmission(https://www.transmissionbt.com/) is designed for easy, powerful use. Transmission has the features you want from a BitTorrent client: encryption, a web interface, peer exchange, magnet links, DHT, &#xB5;TP, UPnP and NAT-PMP port forwarding, webseed support, watch directories, tracker editing, global and per-torrent speed limits, and more.</Overview>
+  <Category>Downloaders:</Category>
+  <WebUI>http://[IP]:[PORT:9091]</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/linuxserver/templates/master/unraid/transmission.xml</TemplateURL>
+  <Icon>http://127.0.0.1/mnt/user/appdata/icon/transmission.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1736153109</DateInstalled>
+  <DonateText>Donations</DonateText>
+  <DonateLink>https://www.linuxserver.io/donate</DonateLink>
+  <Requires/>
+  <Config Name="webui" Target="9091" Default="9091" Mode="tcp" Description="" Type="Port" Display="always" Required="false" Mask="false">9091</Config>
+  <Config Name="51413" Target="51413" Default="51413" Mode="tcp" Description="TCP" Type="Port" Display="always" Required="false" Mask="false">51413</Config>
+  <Config Name="51413/UDP" Target="51413" Default="51413" Mode="udp" Description="UDP" Type="Port" Display="always" Required="false" Mask="false">51413</Config>
+  <Config Name="path:/config" Target="/config" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/transmission4.01/config</Config>
+  <Config Name="path:/download" Target="/user/download" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/download/</Config>
+  <Config Name="TRANSMISSION_WEB_HOME" Target="TRANSMISSION_WEB_HOME" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">/config/src</Config>
+  <Config Name="USER" Target="USER" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">admin</Config>
+  <Config Name="PASS" Target="PASS" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">123456</Config>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="{3}" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">1000</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="{3}" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
+  <Config Name="UMASK" Target="UMASK" Default="022" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">022</Config>
+</Container>

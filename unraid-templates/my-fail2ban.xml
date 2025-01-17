@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>fail2ban</Name>
+  <Repository>lscr.io/linuxserver/fail2ban</Repository>
+  <Registry>https://github.com/orgs/linuxserver/packages/container/package/fail2ban</Registry>
+  <Network>host</Network>
+  <MyIP/>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/linuxserver/docker-fail2ban/issues/new/choose</Support>
+  <Project>http://www.fail2ban.org/</Project>
+  <Overview>Fail2ban(http://www.fail2ban.org/) is a daemon to ban hosts that cause multiple authentication errors.</Overview>
+  <Category>Security:</Category>
+  <WebUI/>
+  <TemplateURL>https://raw.githubusercontent.com/linuxserver/templates/master/unraid/fail2ban.xml</TemplateURL>
+  <Icon>http://127.0.0.1/mnt/user/appdata/icon/fail2ban-logo.png</Icon>
+  <ExtraParams>--cap-add=NET_ADMIN --cap-add=NET_RAW</ExtraParams>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1718260766</DateInstalled>
+  <DonateText>Donations</DonateText>
+  <DonateLink>https://www.linuxserver.io/donate</DonateLink>
+  <Requires/>
+  <Config Name="Path: /var/log" Target="/var/log" Default="" Mode="ro" Description="Host logs. Mounted as Read Only." Type="Path" Display="always" Required="true" Mask="false">/var/log</Config>
+  <Config Name="Verbosity" Target="VERBOSITY" Default="-vv" Mode="{3}" Description="Set the container log verbosity. Valid options are -v, -vv, -vvv, -vvvv, or leaving the value blank or not setting the variable." Type="Variable" Display="always" Required="false" Mask="false">-vv</Config>
+  <Config Name="Appdata" Target="/config" Default="/mnt/user/appdata/fail2ban" Mode="rw" Description="Contains all relevant configuration files." Type="Path" Display="advanced" Required="true" Mask="false">/mnt/user/appdata/fail2ban</Config>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="{3}" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">1000</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="{3}" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
+  <Config Name="UMASK" Target="UMASK" Default="022" Mode="{3}" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">022</Config>
+</Container>

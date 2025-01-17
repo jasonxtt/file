@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>natter-qb</Name>
+  <Repository>john327/natter:2.1.1-4</Repository>
+  <Registry/>
+  <Network>eth1</Network>
+  <MyIP>10.0.0.33</MyIP>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support/>
+  <Project/>
+  <Overview/>
+  <Category/>
+  <WebUI/>
+  <TemplateURL/>
+  <Icon>https://github.com/xushier/HD-Icons/blob/main/border-radius/Uptimekuma_B.png?raw=true</Icon>
+  <ExtraParams>--dns 10.0.0.4</ExtraParams>
+  <PostArgs>-m socket -t 10.0.0.30 -r -e /opt/notify.py</PostArgs>
+  <CPUset/>
+  <DateInstalled>1736957933</DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="Host Path 1" Target="/opt/notify.py" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/natter/notify.py</Config>
+  <Config Name="Host Key 1" Target="TZ" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">Asia/Shanghai</Config>
+  <Config Name="Host Key 2" Target="PUID" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">0</Config>
+  <Config Name="Host Key 3" Target="PGID" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">0</Config>
+  <Config Name="Host Key 4" Target="UMASK" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">022</Config>
+  <TailscaleStateDir/>
+</Container>

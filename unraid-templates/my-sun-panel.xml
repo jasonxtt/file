@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>sun-panel</Name>
+  <Repository>hslr/sun-panel:1.4.0-beta24-02-20</Repository>
+  <Registry>https://hub.docker.com/r/hslr/sun-panel/</Registry>
+  <Network>host</Network>
+  <MyIP/>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://hub.docker.com/r/hslr/sun-panel/</Support>
+  <Project/>
+  <Overview>A server, NAS navigation panel, Homepage, Browser homepage&#xD;
+&#xD;
+Converted By Community Applications   Always verify this template (and values)  against the support page for the container&#xD;
+&#xD;
+https://hub.docker.com/r/hslr/sun-panel/</Overview>
+  <Category/>
+  <WebUI>http://[IP]:[PORT:3002]</WebUI>
+  <TemplateURL/>
+  <Icon>https://siriling.github.io/my-icons/dist/icon/SunPanel_A.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1718697181</DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="Container Port 1" Target="3002" Default="3002" Mode="tcp" Description="" Type="Port" Display="always" Required="false" Mask="false">3002</Config>
+  <Config Name="config" Target="/app/conf" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/sun-panel</Config>
+  <Config Name="cache" Target="/cache" Default="" Mode="ro" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/cache</Config>
+  <Config Name="disk1" Target="/disk1" Default="" Mode="ro" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/disk1</Config>
+</Container>
