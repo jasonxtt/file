@@ -18,7 +18,7 @@ https://hub.docker.com/r/amilys/embyserver/&#xD;
   <Category/>
   <WebUI>http://[IP]:[PORT:8096]/</WebUI>
   <TemplateURL/>
-  <Icon>https://lsky.gc.959527.xyz/i/2024/11/04/67283c908e998.png</Icon>
+  <Icon/>
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>
