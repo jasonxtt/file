@@ -20,7 +20,7 @@ VERSION&#xD;
   <Category>Tools:Utilities Network:Management</Category>
   <WebUI>http://[IP]:[PORT:9000]</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/SmartPhoneLover/unraid-docker-templates/master/templates/Portainer-CE.xml</TemplateURL>
-  <Icon>https://lsky.gc.959527.xyz/i/2024/11/04/67283ac983211.png</Icon>
+  <Icon/>
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>
