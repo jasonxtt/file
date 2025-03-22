@@ -17,7 +17,7 @@ https://hub.docker.com/r/adolfintel/speedtest/</Overview>
   <Category/>
   <WebUI>http://[IP]:[PORT:12345]/</WebUI>
   <TemplateURL/>
-  <Icon>https://lsky.gc.959527.xyz/i/2024/12/06/6751d01030d2f.png</Icon>
+  <Icon/>
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>
