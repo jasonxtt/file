@@ -43,9 +43,9 @@ Execute the command multiple times with different usernames to add more users.</
   <Config Name="Webserver Port" Target="80" Default="" Mode="tcp" Description="" Type="Port" Display="always" Required="false" Mask="false">8384</Config>
   <Config Name="Domains" Target="SERVER_NAMES" Default="" Mode="" Description="Comma-separated list of domains (eg, example.com,www.example.com). The first is set as the ServerName, and the rest (if any) are set as ServerAlias. The default is localhost." Type="Variable" Display="always" Required="false" Mask="false">localhost</Config>
   <Config Name="Username" Target="USERNAME" Default="" Mode="" Description="Authenticate with this username (and the password below). Will be ignored if /user.passwd is present." Type="Variable" Display="always" Required="false" Mask="false">webdav</Config>
-  <Config Name="Password" Target="PASSWORD" Default="" Mode="" Description="Authenticate with this password (and the username above). Will be ignored if /user.passwd is present." Type="Variable" Display="always" Required="false" Mask="true">wyp645769531</Config>
+  <Config Name="Password" Target="PASSWORD" Default="" Mode="" Description="Authenticate with this password (and the username above). Will be ignored if /user.passwd is present." Type="Variable" Display="always" Required="false" Mask="true">webdav123</Config>
   <Config Name="Config" Target="/var/lib/dav" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/webdav</Config>
-  <Config Name="User ID" Target="PUID" Default="" Mode="" Description="" Type="Variable" Display="advanced-hide" Required="false" Mask="false">99</Config>
+  <Config Name="User ID" Target="PUID" Default="" Mode="" Description="" Type="Variable" Display="advanced-hide" Required="false" Mask="false">1000</Config>
   <Config Name="Group ID" Target="PGID" Default="" Mode="" Description="" Type="Variable" Display="advanced-hide" Required="false" Mask="false">100</Config>
-  <Config Name="umask" Target="PUMASK" Default="0000" Mode="" Description="" Type="Variable" Display="advanced-hide" Required="false" Mask="false">000</Config>
+  <Config Name="umask" Target="PUMASK" Default="0000" Mode="" Description="" Type="Variable" Display="advanced-hide" Required="false" Mask="false">022</Config>
 </Container>
