@@ -12,8 +12,8 @@
   <Overview/>
   <Category/>
   <WebUI>http://10.0.0.36:3001?api=http://10.0.0.36:3001/jJfGmwF4s5UqLB441JtIwRd0TM</WebUI>
-  <TemplateURL/>
-  <Icon>https://lsky.gc.959527.xyz/i/2025/01/07/677cc55a66e0b.png</Icon>
+  <TemplateURL/>  
+  <Icon/>
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>
