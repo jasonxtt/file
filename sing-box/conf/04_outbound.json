@@ -9,6 +9,13 @@
             ]
         },
         {
+            "type": "selector",
+            "tag": "GLOBAL",
+            "outbounds": [
+                "Proxy"
+            ]
+        },
+        {
             "type": "vless",
             "tag": "节点1",
             "server": "",
