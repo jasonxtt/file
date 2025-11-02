@@ -1,0 +1,32 @@
+{
+  "dns": {
+    "independent_cache": true,
+    "servers": [
+      {
+        "tag": "remote-dns",
+        "type": "https",
+        "server": "dns.google",
+        "detour": "Proxy"
+      },
+      {
+        "tag": "local-dns",
+        "type": "https",
+        "server": "223.5.5.5"
+      },
+      {
+        "tag": "fakeip-dns",
+        "type": "fakeip",
+        "inet4_range": "28.0.0.0/8",
+        "inet6_range": "f2b0::/18"
+      }
+    ],
+    "rules": [
+      {
+        "inbound": "fake-in",
+        "server": "fakeip-dns",
+        "rewrite_ttl": 1
+      }
+    ],
+    "final": "remote-dns"
+  }
+}

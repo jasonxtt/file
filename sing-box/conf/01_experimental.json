@@ -1,0 +1,15 @@
+{
+  "experimental": {
+    "cache_file": {
+      "enabled": true,
+      "path": "/usr/local/etc/sing-box/cache.db",
+      "store_fakeip": true
+    },
+    "clash_api": {
+      "external_ui": "/usr/local/etc/sing-box/ui",
+      "external_controller": "0.0.0.0:9090",
+      "external_ui_download_detour": "Proxy",
+      "external_ui_download_url": "https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip"
+    }
+  }
+}

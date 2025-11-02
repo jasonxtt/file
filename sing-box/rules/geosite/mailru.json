@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "rules": [
+    {
+      "domain_suffix": [
+        "boosty.to",
+        "donationalerts.com",
+        "imgsmail.ru",
+        "mail.ru",
+        "memealerts.com",
+        "mycdn.me",
+        "okcdn.ru"
+      ]
+    }
+  ]
+}

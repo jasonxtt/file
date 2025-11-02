@@ -1,0 +1,283 @@
+{
+  "route": {
+    "rule_set": [
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "javdb",
+        "path": "/usr/local/etc/sing-box/rules/geosite/javdb.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "dmm",
+        "path": "/usr/local/etc/sing-box/rules/geosite/dmm.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "pornhub",
+        "path": "/usr/local/etc/sing-box/rules/geosite/pornhub.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-google",
+        "path": "/usr/local/etc/sing-box/rules/geosite/google.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-youtube",
+        "path": "/usr/local/etc/sing-box/rules/geosite/youtube.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-openai",
+        "path": "/usr/local/etc/sing-box/rules/geosite/openai.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-telegram",
+        "path": "/usr/local/etc/sing-box/rules/geosite/telegram.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geoip-telegram",
+        "path": "/usr/local/etc/sing-box/rules/geoip/telegram.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-github",
+        "path": "/usr/local/etc/sing-box/rules/geosite/github.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-cloudflare",
+        "path": "/usr/local/etc/sing-box/rules/geosite/cloudflare.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geoip-cloudflare",
+        "path": "/usr/local/etc/sing-box/rules/geoip/cloudflare.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-netflix",
+        "path": "/usr/local/etc/sing-box/rules/geosite/netflix.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geoip-netflix",
+        "path": "/usr/local/etc/sing-box/rules/geoip/netflix.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-category-media",
+        "path": "/usr/local/etc/sing-box/rules/geosite/category-media.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-speedtest",
+        "path": "/usr/local/etc/sing-box/rules/geosite/speedtest.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-jetbrains",
+        "path": "/usr/local/etc/sing-box/rules/geosite/jetbrains.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-spotify",
+        "path": "/usr/local/etc/sing-box/rules/geosite/spotify.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-facebook",
+        "path": "/usr/local/etc/sing-box/rules/geosite/facebook.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-tiktok",
+        "path": "/usr/local/etc/sing-box/rules/geosite/tiktok.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-instagram",
+        "path": "/usr/local/etc/sing-box/rules/geosite/instagram.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-geolocation-!cn",
+        "path": "/usr/local/etc/sing-box/rules/geosite/geolocation-!cn.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-cn",
+        "path": "/usr/local/etc/sing-box/rules/geosite/cn.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-icloud@cn",
+        "path": "/usr/local/etc/sing-box/rules/geosite/icloud@cn.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-apple@cn",
+        "path": "/usr/local/etc/sing-box/rules/geosite/apple@cn.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geoip-cn",
+        "path": "/usr/local/etc/sing-box/rules/geoip/cn.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-geolocation-cn",
+        "path": "/usr/local/etc/sing-box/rules/geosite/geolocation-cn.srs"
+      },
+      {
+        "type": "local",
+        "format": "binary",
+        "tag": "geosite-geolocation-cn@cn",
+        "path": "/usr/local/etc/sing-box/rules/geosite/geolocation-cn@cn.srs"
+      }
+    ],
+    "rules": [
+      {
+        "inbound": "fake-in",
+        "action": "hijack-dns"
+      },
+      {
+        "ip_cidr": [
+          "1.1.1.1/32",
+          "1.0.0.1/32",
+          "8.8.8.8/32",
+          "8.8.4.4/32",
+          "2001:4860:4860::8888/128",
+          "2001:4860:4860::8844/128",
+          "2606:4700:4700::1111/128",
+          "2606:4700:4700::1001/128"
+        ],
+        "outbound": "Proxy"
+      },
+      {
+        "ip_cidr": [
+          "223.5.5.5/32",
+          "223.6.6.6/32"
+        ],
+        "outbound": "direct"
+      },
+      {
+        "type": "logical",
+        "mode": "or",
+        "rules": [
+          {
+            "port": 853
+          },
+          {
+            "network": "udp",
+            "port": 443
+          },
+          {
+            "protocol": "stun"
+          }
+        ],
+        "action": "reject",
+        "method": "drop"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "direct"
+      },
+      {
+        "rule_set": [
+          "geosite-youtube"
+        ],
+        "outbound": "Proxy"
+      },
+      {
+        "rule_set": [
+          "geosite-google"
+        ],
+        "outbound": "Proxy"
+      },
+      {
+        "rule_set": [
+          "geoip-telegram"
+        ],
+        "outbound": "Proxy"
+      },
+      {
+        "rule_set": [
+          "geosite-telegram"
+        ],
+        "outbound": "Proxy"
+      },
+      {
+        "rule_set": [
+          "geosite-cloudflare"
+        ],
+        "outbound": "Proxy"
+      },
+      {
+        "rule_set": [
+          "geosite-github"
+        ],
+        "outbound": "Proxy"
+      },
+      {
+        "rule_set": [
+          "geosite-openai"
+        ],
+        "outbound": "Proxy"
+      },
+      {
+        "rule_set": [
+          "geosite-spotify"
+        ],
+        "outbound": "Proxy"
+      },
+      {
+        "type": "logical",
+        "mode": "and",
+        "rules": [
+          {
+            "domain_suffix": [
+              ".cn"
+            ]
+          },
+          {
+            "rule_set": "geosite-cn",
+            "invert": true
+          }
+        ],
+        "outbound": "Proxy"
+      }
+    ],
+    "default_domain_resolver": "local-dns",
+    "auto_detect_interface": true,
+    "final": "Proxy"
+  }
+}

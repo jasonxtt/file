@@ -1,0 +1,5 @@
+plugins:
+  - tag: clientname
+    type: webinfo
+    args:
+      file: "/cus/mosdns/webinfo/clientname.json"

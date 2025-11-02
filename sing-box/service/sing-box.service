@@ -1,0 +1,31 @@
+[Unit]
+Description=sing-box service
+Documentation=https://sing-box.sagernet.org
+After=network.target nss-lookup.target network-online.target
+
+[Service]
+Type=simple
+StandardOutput=null
+StandardError=journal
+
+ExecStartPre=/bin/bash -c "/sbin/ip rule del fwmark 1 table 100 2>/dev/null || true; /sbin/ip route del local default dev lo table 100 2>/dev/null || true; /sbin/ip -6 rule del fwmark 1 table 101 2>/dev/null || true; /sbin/ip -6 route del local ::/0 dev lo table 101 2>/dev/null || true"
+
+ExecStart=/bin/bash -c "/sbin/ip rule add fwmark 1 table 100; /sbin/ip route add local default dev lo table 100; /sbin/ip -6 rule add fwmark 1 table 101 || true; /sbin/ip -6 route add local ::/0 dev lo table 101 || true; exec /usr/local/bin/sing-box run -C /usr/local/etc/sing-box/conf/"
+
+ExecStopPost=/bin/bash -c "/sbin/ip rule del fwmark 1 table 100 2>/dev/null || true; /sbin/ip route del local default dev lo table 100 2>/dev/null || true; /sbin/ip -6 rule del fwmark 1 table 101 2>/dev/null || true; /sbin/ip -6 route del local ::/0 dev lo table 101 2>/dev/null || true"
+
+Restart=on-failure
+RestartSec=10s
+LimitNOFILE=1048576
+
+# 超过此内存自动杀死进程
+MemoryMax=1024M
+
+# 达到此值系统会尝试压制内存分配
+MemoryHigh=1000M
+
+# 如果被 OOM 杀掉就自动重启
+OOMPolicy=restart
+
+[Install]
+WantedBy=multi-user.target
