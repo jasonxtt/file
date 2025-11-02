@@ -1,0 +1,32 @@
+注意事项
+1：必须使用我发的二进制或者自己编译，amd64架构可以使用我发的二进制，其它可能需要自己编译，源码及编译命令在后面。
+2：不要更换目录，否则需要自己重新修改配置文件中的目录，不建议。
+3：启动前杀掉自己的mosdns，防止端口冲突。
+4：如果启动不了，可以手动删除配置文件中所有的中文注释再尝试。
+5：有问题使用前台运行命令看报错 /cus/bin/mosdns start -c /cus/mosdns/config_custom.yaml -d /cus/mosdns
+6：注释有好多写错的地方，懒得改了，可忽略。
+
+使用方法
+1：把/cus/整个文件夹放入/根目录下，给0755权限，根据cpu架构把/cus/bin/下的2个二进制文件重命名为mosdns（不知道重命名哪个就用v3版本的，跑不起来再换非v3版本）
+2：在以下配置文件中搜索socks5: "127.0.0.1:7891"，替换为自己的sing-box/mihomo的socks5入站。
+/cus/mosdns/sub_config/adguard.yaml  1处
+/cus/mosdns/sub_config/forward_nocn.yaml 2处
+/cus/mosdns/sub_config/forward_nocn_ecs.yaml  1处
+/cus/mosdns/sub_config/rule_set.yaml  3处
+3：配置文件/cus/mosdns/sub_config/forward_1.yaml中搜索- addr: "udp://127.0.0.1:7874"，替换为自己的sing-box/mihomo的fakeip dns入站
+4：配置文件中/cus/mosdns/sub_config/forward_nocn_ecs.yaml搜索- exec: ecs 2408:8214:213::1，替换为自己的公网ipv6 /64段（没有公网IP的可以使用运营商下发的ipv4 dns ip也可以）
+5：配置文件/cus/mosdns/sub_config/forward_local.yaml中搜索202.102.128.68，改为自己运营商拨号下发的dns
+6：sing-box中要store fakeip
+7：后台运行命令 nohup  /cus/bin/mosdns start -c /cus/mosdns/config_custom.yaml -d /cus/mosdns  > /tmp/mosdnsstart.log 2>&1  &
+8：openwrt可以使用etc init.d文件夹中的mosdns启动文件，放入/etc/init.d/下面给权限（0755），然后 /etc/init.d/mosdns enable设置开机启动。
+
+编译方法：
+1：git clone https://github.com/yyysuo/mosdns
+2：cd /root/mosdns
+3：go clean
+4：
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -extldflags '-static'" -o mosdns
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOAMD64=v3 go build -ldflags="-s -w -extldflags '-static'" -o mosdns
+5：mosdns二进制位于/root/mosdns/mosdns
+
+

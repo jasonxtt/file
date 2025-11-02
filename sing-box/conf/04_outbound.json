@@ -1,0 +1,74 @@
+{
+    "outbounds": [
+        {
+            "tag": "Proxy",
+            "type": "selector",
+            "outbounds": [
+                "节点1",
+                "节点2"
+            ]
+        },
+        {
+            "type": "vless",
+            "tag": "节点1",
+            "server": "",
+            "server_port": 443,
+            "uuid": "",
+            "tls": {
+                "enabled": true,
+                "server_name": "",
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "chrome"
+                }
+            },
+            "packet_encoding": "xudp",
+            "transport": {
+                "type": "grpc",
+                "service_name": ""
+            }
+        },
+        {
+            "type": "vless",
+            "tag": "节点2",
+            "uuid": "",
+            "packet_encoding": "xudp",
+            "server": "",
+            "server_port": ,
+            "flow": "",
+            "tls": {
+                "enabled": true,
+                "server_name": "",
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "chrome"
+                },
+                "reality": {
+                    "enabled": true,
+                    "public_key": "",
+                    "short_id": ""
+                }
+            },
+            "multiplex": {
+                "enabled": true,
+                "protocol": "h2mux",
+                "max_connections": 1,
+                "min_streams": 2,
+                "padding": true,
+                "brutal": {
+                    "enabled": true,
+                    "up_mbps": 50,
+                    "down_mbps": 500
+                }
+            }
+        },
+        {
+            "type": "direct",
+            "tag": "direct"
+        },
+        {
+            "type": "block",
+            "tag": "block"
+        }
+    ]
+}

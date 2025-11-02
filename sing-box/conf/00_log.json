@@ -1,0 +1,8 @@
+{
+  "log": {
+    "disabled": false,
+    "level": "panic",
+    "output": "/usr/local/etc/sing-box/sing-box.log",
+    "timestamp": true
+  }
+}

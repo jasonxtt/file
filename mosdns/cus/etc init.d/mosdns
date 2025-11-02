@@ -1,0 +1,80 @@
+#!/bin/sh /etc/rc.common
+
+START=90
+STOP=10
+
+# 配置路径和文件
+PID_FILE="/var/run/mosdns.pid"
+CONFIG_FILE="/cus/mosdns/config_custom.yaml"
+LOG_FILE="/tmp/mosdnsstart.log"
+
+start() {
+    echo "Starting mosdns..."
+    if [ -f $PID_FILE ]; then
+        PID=$(cat $PID_FILE)
+        if [ -d "/proc/$PID" ] && grep -q "mosdns" /proc/$PID/cmdline; then
+            echo "mosdns is already running (PID $PID)."
+            return 1
+        else
+            echo "Found stale PID file. Removing..."
+            rm -f $PID_FILE
+        fi
+    fi
+
+    # 动态检查是否已有运行的 mosdns
+    RUNNING_PID=$(pgrep -f "/cus/bin/mosdns")
+    if [ -n "$RUNNING_PID" ]; then
+        echo "mosdns is already running (PID $RUNNING_PID)."
+        return 1
+    fi
+
+    /cus/bin/mosdns start -c $CONFIG_FILE -d /cus/mosdns > $LOG_FILE 2>&1 &
+    echo $! > $PID_FILE
+    echo "mosdns started (PID $!)."
+}
+
+stop() {
+    echo "Stopping mosdns..."
+    if [ -f $PID_FILE ]; then
+        PID=$(cat $PID_FILE)
+        if [ -d "/proc/$PID" ] && grep -q "mosdns" /proc/$PID/cmdline; then
+            echo "Killing process $PID..."
+            kill "$PID" || kill -9 "$PID"
+            sleep 1
+            if [ -d "/proc/$PID" ]; then
+                echo "Failed to stop mosdns process. Please check manually."
+                return 1
+            else
+                echo "Process $PID stopped successfully."
+                rm -f $PID_FILE
+            fi
+        else
+            echo "No such process (PID $PID). Removing stale PID file..."
+            rm -f $PID_FILE
+        fi
+    else
+        # 动态检测是否有运行的 mosdns
+        echo "Searching for running mosdns processes..."
+        RUNNING_PID=$(pgrep -f "/cus/bin/mosdns")
+        if [ -n "$RUNNING_PID" ]; then
+            echo "Found mosdns process (PID $RUNNING_PID). Stopping..."
+            kill "$RUNNING_PID" || kill -9 "$RUNNING_PID"
+            sleep 1
+            if [ -d "/proc/$RUNNING_PID" ]; then
+                echo "Failed to stop mosdns process. Please check manually."
+                return 1
+            else
+                echo "Process $RUNNING_PID stopped successfully."
+            fi
+        else
+            echo "No mosdns process is running."
+        fi
+    fi
+}
+
+restart() {
+    echo "Restarting mosdns..."
+    stop
+    sleep 1
+    start
+}
