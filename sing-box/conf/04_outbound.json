@@ -41,7 +41,7 @@
             "uuid": "",
             "packet_encoding": "xudp",
             "server": "",
-            "server_port": ,
+            "server_port": 443,
             "flow": "",
             "tls": {
                 "enabled": true,
