@@ -2,7 +2,7 @@
   "version": 2,
   "rules": [
     {
-      "domain": [
+      "domain_suffix": [
         "analytics.strava.com",
         "blzddist1-a.akamaihd.net",
         "cdn.angruo.com",
@@ -22,9 +22,7 @@
         "tx.lilyemby.com",
         "weixin.com",
         "www.libvideo.com",
-        "www.yxssp.com"
-      ],
-      "domain_suffix": [
+        "www.yxssp.com",
         "00cdn.com",
         "0123456789.com",
         "0379home.com",
