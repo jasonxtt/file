@@ -90,7 +90,7 @@ remove_ports_from_list() {
   normalize_ports "$result"
 }
 
-# 猜测 SSH 端口
+# 猜测 SSH 端口 (通常只用 TCP)
 guess_ssh_ports() {
   local ports=""
   ports="$(ss -lntpH 2>/dev/null | awk '/sshd/ {n=split($4,a,":"); p=a[n]; if(p~/^[0-9]+$/) print p}' \
@@ -103,14 +103,28 @@ guess_ssh_ports() {
   echo "$ports"
 }
 
+# 猜测 Sing-box 端口 (修复版：智能适配列位置)
 guess_sb_ports() {
-  ss -lntpH 2>/dev/null | awk '/sing-box/ { addr=$4; n=split(addr,a,":"); p=a[n]; if (p ~ /^[0-9]+$/) print p }' \
-    | sort -u | paste -sd, - || true
+  ss -lntupH 2>/dev/null | awk '/sing-box/ { 
+    # 核心修复：如果第1列是 tcp/udp，地址就在第5列；否则在第4列
+    col = ($1 ~ /^(tcp|udp)$/) ? 5 : 4
+    addr = $col
+    n = split(addr, a, ":")
+    p = a[n]
+    if (p ~ /^[0-9]+$/) print p 
+  }' | sort -u | paste -sd, - || true
 }
 
+# 猜测 SUI 端口 (修复版：智能适配列位置)
 guess_sui_ports() {
-  ss -lntpH 2>/dev/null | awk '/\("sui"/ { addr=$4; n=split(addr,a,":"); p=a[n]; if (p ~ /^[0-9]+$/) print p }' \
-    | sort -u | paste -sd, - || true
+  ss -lntupH 2>/dev/null | awk '/\("sui"/ { 
+    # 核心修复：同上
+    col = ($1 ~ /^(tcp|udp)$/) ? 5 : 4
+    addr = $col
+    n = split(addr, a, ":")
+    p = a[n]
+    if (p ~ /^[0-9]+$/) print p 
+  }' | sort -u | paste -sd, - || true
 }
 
 restore_or_remove_nft_conf() {
@@ -243,7 +257,7 @@ EOF
 }
 EOF
 
-  # 2. 生成端口同步脚本 (系统服务用)
+  # 2. 生成端口同步脚本 (这里也要修复检测逻辑)
   cat >"$PORTSYNC_SCRIPT" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -314,8 +328,9 @@ SB_LIST=""
 if [[ -n "${SB_PORTS_OVERRIDE:-}" ]]; then
   SB_LIST="$(normalize_ports "$SB_PORTS_OVERRIDE" || true)"
 else
+  # 修复：ss -lntupH (支持 UDP)
   mapfile -t SB_PORTS < <(
-    ss -lntpH 2>/dev/null | awk '
+    ss -lntupH 2>/dev/null | awk '
       /sing-box/ {
         addr=$4
         n=split(addr, a, ":")
@@ -332,8 +347,9 @@ SUI_LIST=""
 if [[ -n "${SUI_PORTS_OVERRIDE:-}" ]]; then
   SUI_LIST="$(normalize_ports "$SUI_PORTS_OVERRIDE" || true)"
 else
+  # 修复：ss -lntupH (支持 UDP)
   mapfile -t SUI_PORTS < <(
-    ss -lntpH 2>/dev/null | awk '
+    ss -lntupH 2>/dev/null | awk '
       /\("sui"/ {
         addr=$4
         n=split(addr, a, ":")
@@ -360,8 +376,6 @@ EOF_IN
   echo "[OK] ssh_ports   => $MGMT_LIST"
 fi
 
-# 对于可选集合，如果列表非空，则刷新并添加
-# 如果列表为空但集合存在，我们清空集合（防止残留）
 if has_set "$SB_SET"; then
   if [[ -n "$SB_LIST" ]]; then
     nft -f - <<EOF_SB
@@ -452,7 +466,7 @@ install_fw() {
   sb_ports=""
   default_sb="$(guess_sb_ports)"
   if [[ -n "$default_sb" ]]; then
-    echo "检测到 sing-box 监听端口：${default_sb}"
+    echo "检测到 sing-box 监听端口 (TCP/UDP)：${default_sb}"
     read -r -e -p "请输入 sing-box 端口（TCP/UDP）[默认: ${default_sb}] : " in_sb || true
     in_sb="$(trim "${in_sb:-}")"
     [[ -z "$in_sb" ]] && in_sb="$default_sb"
@@ -466,7 +480,7 @@ install_fw() {
   sui_ports=""
   default_sui="$(guess_sui_ports)"
   if [[ -n "$default_sui" ]]; then
-    echo "检测到 SUI 监听端口：${default_sui}"
+    echo "检测到 SUI 监听端口 (TCP/UDP)：${default_sui}"
     read -r -e -p "请输入 SUI 端口（TCP/UDP）[默认: ${default_sui}] : " in_sui || true
     in_sui="$(trim "${in_sui:-}")"
     [[ -z "$in_sui" ]] && in_sui="$default_sui"
