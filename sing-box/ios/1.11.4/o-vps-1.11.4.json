@@ -1,0 +1,319 @@
+{
+    "log": {
+        "level": "warn",
+        "timestamp": false
+    },
+    "dns": {
+        "servers": [
+            {
+                "tag": "dns_proxy",
+                "address": "tls://8.8.8.8:853",
+                "strategy": "prefer_ipv4",
+                "detour": "proxy",
+                "client_subnet": "2408:888:888::1" //DNSECS设置，改为手机的公网IP地址
+            },
+            {
+                "tag": "dns_cf",
+                "address": "tls://1.1.1.1:853",
+                "strategy": "prefer_ipv4",
+                "detour": "proxy"
+            },
+            {
+                "tag": "dns_direct",
+                "address": "tls://223.5.5.5:853",
+                "strategy": "prefer_ipv4",
+                "detour": "direct"
+            },
+            {
+                "tag": "dns_resolver",
+                "address": "223.5.5.5",
+                "detour": "direct"
+            },
+            {
+                "tag": "dns_success",
+                "address": "rcode://success"
+            },
+            {
+                "tag": "dns_refused",
+                "address": "rcode://refused"
+            },
+            {
+                "tag": "block",
+                "address": "rcode://success"
+            },
+            {
+                "tag": "dns_fakeip",
+                "address": "fakeip"
+            }
+        ],
+        "rules": [
+            {
+                "rule_set": "geosite-category-ads-all",
+                "server": "block",
+                "action": "route-options",
+                "disable_cache": true
+            },
+            {
+                "domain_suffix": [
+                    "ddns域名", //DDNS域名
+                    "ddns域名2"
+                ],
+                "server": "dns_direct",
+                "disable_cache": true
+            },
+            {
+                "domain_regex": "^-cn-ssl.ls.apple.com",
+                "domain_suffix": [
+                    "office365.com",
+                    "office.com",
+                    "push-apple.com.akadns.net",
+                    "push.apple.com",
+                    "time.apple.com",
+                    "gs-loc-cn.apple.com",
+                    "iphone-ld.apple.com",
+                    "lcdn-locator.apple.com",
+                    "lcdn-registration.apple.com"
+                ],
+                "domain": [
+                    "gs-loc-cn.apple.com",
+                    "gsp10-ssl-cn.ls.apple.com",
+                    "gsp12-cn.ls.apple.com",
+                    "gsp13-cn.ls.apple.com",
+                    "gsp4-cn.ls.apple.com.edgekey.net.globalredir.akadns.net",
+                    "gsp4-cn.ls.apple.com.edgekey.net",
+                    "gsp4-cn.ls.apple.com",
+                    "gsp5-cn.ls.apple.com",
+                    "gsp85-cn-ssl.ls.apple.com",
+                    "gspe19-2-cn-ssl.ls.apple.com",
+                    "gspe19-cn-ssl.ls.apple.com",
+                    "gspe19-cn.ls-apple.com.akadns.net",
+                    "gspe19-cn.ls.apple.com",
+                    "gspe79-cn-ssl.ls.apple.com",
+                    "cl2-cn.apple.com",
+                    "cl4-cn.apple.com"
+                ],
+                "server": "dns_direct",
+                "disable_cache": false
+            },
+            {
+                "rule_set": "geosite-cn",
+                "query_type": [
+                    "A",
+                    "AAAA"
+                ],
+                "server": "dns_direct"
+            },
+            {
+                "rule_set": "geosite-cn",
+                "query_type": [
+                    "CNAME"
+                ],
+                "server": "dns_direct"
+            },
+            {
+                "rule_set": "geosite-geolocation-!cn",
+                "query_type": [
+                    "A",
+                    "AAAA"
+                ],
+                "server": "dns_fakeip"
+            },
+            {
+                "rule_set": "geosite-geolocation-!cn",
+                "query_type": [
+                    "CNAME"
+                ],
+                "server": "dns_proxy"
+            },
+            {
+                "query_type": [
+                    "A",
+                    "AAAA",
+                    "CNAME"
+                ],
+                "invert": true,
+                "server": "dns_refused",
+                
+                "action": "route-options",
+                "disable_cache": true
+            }
+        ],
+        "final": "dns_proxy",
+        "independent_cache": true,
+        "fakeip": {
+            "enabled": true,
+            "inet4_range": "198.18.0.0/15",
+            "inet6_range": "fc00::/18"
+        }
+    },
+    "route": {
+        "rule_set": [
+            {
+                "tag": "geosite-category-ads-all",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-category-ads-all.srs",
+                "download_detour": "proxy"
+            },
+            {
+                "tag": "geosite-netflix",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/netflix.srs",
+                "download_detour": "proxy"
+            },
+            {
+                "tag": "geosite-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs",
+                "download_detour": "proxy"
+            },
+            {
+                "tag": "geosite-geolocation-!cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-geolocation-!cn.srs",
+                "download_detour": "proxy"
+            },
+            {
+                "tag": "geoip-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geoip/rule-set/geoip-cn.srs",
+                "download_detour": "proxy"
+            }
+        ],
+        "rules": [
+            {
+                "inbound": "tun-in",
+                "action": "sniff"
+            },
+            {
+                "protocol": "dns",
+                "action": "hijack-dns"
+            },
+            {
+                "ip_cidr": [
+                    "10.10.10.0/24", //家里网段
+                    "192.168.22.0/24" //家里网段2
+                ],
+                "outbound": "home" //自行修改为回家策略组或节点
+            },
+            {
+                "network": "udp",
+                "port": 443,
+                "outbound": "block"
+            },
+            {
+                "rule_set": "geosite-category-ads-all",
+                "outbound": "block"
+            },
+            {
+                "domain_suffix": [
+                    ".cn"
+                ],
+                "outbound": "direct"
+            },
+            {
+                "domain_suffix": [
+                    "office365.com",
+                    "office.com"
+                ],
+                "outbound": "direct"
+            },
+            {
+                "domain_regex": "^-cn-ssl.ls.apple.com",
+                "domain_suffix": [
+                    "push.apple.com",
+                    "push-apple.com.akadns.net",
+                    "time.apple.com",
+                    "gs-loc-cn.apple.com",
+                    "iphone-ld.apple.com",
+                    "lcdn-locator.apple.com",
+                    "lcdn-registration.apple.com"
+                ],
+                "domain": [
+                    "gs-loc-cn.apple.com",
+                    "gsp10-ssl-cn.ls.apple.com",
+                    "gsp12-cn.ls.apple.com",
+                    "gsp13-cn.ls.apple.com",
+                    "gsp4-cn.ls.apple.com.edgekey.net.globalredir.akadns.net",
+                    "gsp4-cn.ls.apple.com.edgekey.net",
+                    "gsp4-cn.ls.apple.com",
+                    "gsp5-cn.ls.apple.com",
+                    "gsp85-cn-ssl.ls.apple.com",
+                    "gspe19-2-cn-ssl.ls.apple.com",
+                    "gspe19-cn-ssl.ls.apple.com",
+                    "gspe19-cn.ls-apple.com.akadns.net",
+                    "gspe19-cn.ls.apple.com",
+                    "gspe79-cn-ssl.ls.apple.com",
+                    "cl2-cn.apple.com",
+                    "cl4-cn.apple.com"
+                ],
+                "outbound": "direct"
+            },
+            {
+                "rule_set": "geosite-cn",
+                "outbound": "direct"
+            },
+            {
+                "rule_set": "geosite-geolocation-!cn",
+                "outbound": "proxy"
+            },
+            {
+                "rule_set": "geoip-cn",
+                "outbound": "direct"
+            },
+            {
+                "ip_is_private": true,
+                "outbound": "direct"
+            }
+        ],
+        "final": "proxy",
+        "auto_detect_interface": true
+    },
+    "inbounds": [
+        {
+            "type": "tun",
+            "tag": "tun-in",
+            "address": [
+                "172.16.0.1/30",
+                "fd00::1/126"
+            ],
+            "mtu": 1500,
+            "auto_route": true,
+            "strict_route": true,
+            "stack": "system"
+        }
+    ],
+    "outbounds": [
+        {
+            "tag": "proxy",
+            "type": "selector",
+            "outbounds": [
+                "vps1", //自行添加vps节点  
+                "vps2"
+            ]
+        },
+        {
+            "tag": "home",
+            "type": "selector",
+            "outbounds": [
+                "回家1", //自行添加回家节点
+                "回家2"
+            ]
+        },
+        {
+            "type": "direct",
+            "tag": "direct"
+        }
+    ],
+    "experimental": {
+        "cache_file": {
+            "enabled": true,
+            "path": "o-vps-cache.db",
+            "store_fakeip": true
+        }
+    }
+}
