@@ -1,11 +1,11 @@
 [Unit]
 Description=A DNS forwarder
-ConditionFileIsExecutable=/usr/local/bin/mosdns
+ConditionFileIsExecutable=/cus/bin/mosdns
 
 [Service]
 StartLimitInterval=5
 StartLimitBurst=10
-ExecStart=/usr/local/bin/mosdns "start" "--as-service" "-d" "/cus/mosdns" "-c" "/cus/mosdns/config_custom.yaml"
+ExecStart=/cus/bin/mosdns "start" "--as-service" "-d" "/cus/mosdns" "-c" "/cus/mosdns/config_custom.yaml"
 
 Restart=always
 
