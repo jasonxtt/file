@@ -1,0 +1,20 @@
+{
+  "socks5": "127.0.0.1:7890",
+  "ecs": "",
+  "replacements": {
+    "sbnet": "",
+    "dnssrv": "127.0.0.1:6666",
+    "homeip": "",
+    "fdns6": "",
+    "listen": ":53",
+    "directgroup": [
+      "fakeip"
+    ],
+    "fakeip": "198.18.0.0/15",
+    "fakeip6": "fc00::/18",
+    "ebpf": "关闭",
+    "nftset": "/path/to/sbmi.conf",
+    "cdnip": "198.19.0.0/16",
+    "cdnip6": "fc00:1::/32"
+  }
+}
