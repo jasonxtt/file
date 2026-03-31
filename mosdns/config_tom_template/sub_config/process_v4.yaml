@@ -1,0 +1,134 @@
+plugins:
+#处理A请求
+  - tag: sequence_ipv4
+    type: sequence
+    args:
+      - exec: $sequence_special_v4
+#########################!cn fakeip filter##################################################
+      - matches: fast_mark 9                               #!cn fakeip filter
+        exec: $sequence_google                             #向国外dns请求realip
+      - matches: fast_mark 9                               #!cn fakeip filter
+        exec: exit                                         #结束查询
+#########################直接发fakeip并结束##################################################
+#特殊代理部分
+      - matches: fast_mark 12                              #记忆代理
+        exec: $nocnfake                                    #请求国外fakeip
+      - matches: fast_mark 12                              #记忆代理
+        exec: exit                                         #结束查询
+#特殊直连部分
+      - matches:                                           #直连域名fakeip请求上游
+        - "fast_mark 11"                                   #记忆直连
+        - "!fast_mark 10"                                  #不在CN FakeIP Filter中
+        - switch9 'B'                                      #CN FakeIP
+        exec: $sequence_local_fake_pure                    #单纯请求国内fakeip
+      - matches:                                           #直连域名fakeip请求上游
+        - "fast_mark 11"                                   #记忆直连
+        - "fast_mark 10"                                   #在CN FakeIP Filter中
+        - switch9 'B'                                      #CN FakeIP
+        exec: $sequence_local                              #单纯请求国内fakeip
+      - matches:                                           #直连域名fakeip请求上游
+        - "fast_mark 11"                                   #记忆直连
+        - switch9 'B'                                      #CN FakeIP
+        exec: exit                                         #结束查询
+#逐步把所有域名加入到记忆代理清单
+      - matches: fast_mark 7 15                            #灰名单、订阅代理补充
+        exec: $nocnfake                                    #请求国外fakeip
+      - matches: fast_mark 7 15                            #灰名单、订阅代理补充
+        exec: $sequence_fakeip_addlist                     #向sing-box请求fakeip加入清单并结束
+#逐步把所有域名加入到记忆直连清单
+      - matches:                                           #直连域名fakeip请求上游
+        - "fast_mark 8 13"                                 #白名单、订阅直连补充
+        - "!fast_mark 10"                                  #不在CN FakeIP Filter中
+        - switch9 'B'                                      #CN FakeIP
+        exec: $sequence_local_fake_pure                    #单纯请求国内fakeip
+      - matches:                                           #直连域名fakeip结束查询
+        - "!fast_mark 11"                                  #不在记忆直连列表中
+        - "fast_mark 8 13"                                 #白名单、订阅直连补充
+        - "!fast_mark 10"                                  #不在CN FakeIP Filter中
+        - switch9 'B'                                      #CN FakeIP
+        exec: $my_realiplist                               #加入自生成国内域名列表
+      - matches:                                           #直连域名fakeip结束查询
+        - "fast_mark 8 13"                                 #白名单、订阅直连补充
+        - "!fast_mark 10"                                  #不在CN FakeIP Filter中
+        - switch9 'B'                                      #CN FakeIP
+        exec: exit                                         #结束查询
+#########################需要进一步判断生成域名表##############################################         
+      - matches: fast_mark 8 10 11 13 16                   #白名单、CN Fake IP Filter、记忆直连、订阅直连补充、订阅直连
+        exec: $sequence_local                              #先用国内dns查询后再进一步处理
+      - matches:   
+        - "!fast_mark 11"                                  #域名不在生成国内域名列表中                                        
+        - "fast_mark 8 10 13 16"                           #白名单、CN Fake IP Filter、订阅直连补充、订阅直连
+        - "rcode 0"                                        #上游查询成功
+        - "resp_ip 0.0.0.0/0"                              #有V4 IP
+        exec: fast_mark 19                                 #做出标记
+      - matches: fast_mark 19
+        exec: $my_realiplist                               #加入自生成国内域名列表
+      - matches:                                           #CN Fake IP Filter且有ip
+        - fast_mark 11 19
+        - fast_mark 10
+        exec: exit                                         #直接采用前一步国内dns的realip并结束
+      - matches:                                           #开启cntomihomo开关后国内域名向mihomo请求fakeip
+        - fast_mark 11 19                                  #以前判断为记忆直连与本次判断为记忆直连
+        - switch9 'B'
+        exec: $sequence_local_fake_pure                    #单纯请求国内fakeip
+      - matches: fast_mark 11 19                           #未开启cntokfakeip开关的情况则接受上游返回的realip
+        exec: exit                                         #有IP的情况结束整个流程
+      - matches:
+        - "fast_mark 14"                                   #geosite-geolocation-!cn                            
+        - "!fast_mark 8 10 11 13 16"                       #直连域名
+        exec: $sequence_fakeip_addlist                     #geosite-geolocation-!cn向sing-box请求fakeip加入清单并结束
+#########################列表外域名处理############################################## 
+##先查找IP判断国内国外分流
+      - matches:
+        - "!fast_mark 7 8 9 10 11 12 13 14 15 16"          #列表外域名
+        - switch3 'A'                                      #兼容模式处理列表外域名                           
+        exec: $sequence_local                              #表外域名先发到国内查第1次
+      - matches:
+        - "!fast_mark 7 8 9 10 11 12 13 14 15 16"          #列表外域名
+        - switch3 'B'                                      #安全模式处理列表外域名   
+        exec: $sequence_google_node                        #表外域名先带ecs发到8888查第1次
+      - matches:
+        - "!fast_mark 7 8 9 10 11 12 13 14 15 16"          #列表外域名
+        - "!resp_ip 0.0.0.0/0"                             #不管是安全模式还是兼容模式，还没有IP                                 
+        exec: $sequence_google                             #google dns不带ecs查第2次
+      - matches:
+        - "!fast_mark 7 8 9 10 11 12 13 14 15 16"          #列表外域名
+        - switch3 'B'                                      #安全模式
+        - "!resp_ip 0.0.0.0/0"                             #还是没有IP                                 
+        exec: $sequence_local                              #安全模式国内dns查第3次
+      - matches: fast_mark 7 8 9 10 11 12 13 14 15 16      #列表内无IP的情况
+        exec: $sequence_google                             #google dns不带ecs查第2次
+      - matches:
+        - "rcode 0 3"
+        - "!resp_ip 0.0.0.0/0"
+        exec: fast_mark 20                                 #做出标记
+      - matches: fast_mark 20                              #上游dns未返回ip
+        exec:
+          - $my_nov4list                                   #加入自生成无v4域名清单
+          - drop_resp                                      #避免cname传递
+          - reject 0                                       #此处仅跳出当前exec隐藏子序列并设置rcode
+      - matches: fast_mark 20
+        exec: exit                                         #跳出所有处理逻辑结束处理
+##列表外域名根据获取的IP分流 
+      - matches: "resp_ip $direct_ip"            
+        exec: fast_mark 24                                 #标记上游dns返回了直连ip列表中的ip
+      - matches: fast_mark 24
+        exec: $my_realiplist                               #把此域名加入自生成国内域名列表
+      - matches:                                           #开启cntomihomo开关后国内域名向mihomo请求fakeip
+        - fast_mark 24
+        - switch9 'B'
+        exec: $sequence_local_fake_pure                    #单纯请求国内fakeip
+      - matches: fast_mark 24                              #上游dns返回了自定义直连ip列表中的ip，结束流程
+        exec: exit                                         #结束整个序列
+      - matches: "!resp_ip $geoip_cn"                      #标记列表外域名上游dns获取了!cn ip
+        exec: fast_mark 25
+      - matches: fast_mark 25                              #向sing-box请求fakeip并加入自生成国外域名列表
+        exec: $sequence_fakeip_addlist
+      - matches: "!fast_mark 25"
+        exec: $my_realiplist                               #如果获取了cn ip，则加入自生成国内域名列表
+      - matches:                                           #开启cntomihomo开关后国内域名向mihomo请求fakeip，否则接受上游ip
+        - "!fast_mark 25"                             
+        - switch9 'B'
+        exec: $sequence_local_fake_pure                    #单纯请求国内fakeip
+
+
