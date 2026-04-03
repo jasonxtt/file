@@ -6,6 +6,12 @@ plugins:
       socks5: ""
       local_config: "srs/special_50.json"
 
+  - tag: special_manual_50
+    type: domain_set_light
+    args:
+      files:
+        - "rule/special_50.txt"
+
   - tag: cache_special_50
     type: cache
     args:
@@ -35,6 +41,12 @@ plugins:
     args:
       socks5: ""
       local_config: "srs/special_51.json"
+
+  - tag: special_manual_51
+    type: domain_set_light
+    args:
+      files:
+        - "rule/special_51.txt"
 
   - tag: cache_special_51
     type: cache
@@ -66,6 +78,12 @@ plugins:
       socks5: ""
       local_config: "srs/special_52.json"
 
+  - tag: special_manual_52
+    type: domain_set_light
+    args:
+      files:
+        - "rule/special_52.txt"
+
   - tag: cache_special_52
     type: cache
     args:
@@ -95,6 +113,12 @@ plugins:
     args:
       socks5: ""
       local_config: "srs/special_53.json"
+
+  - tag: special_manual_53
+    type: domain_set_light
+    args:
+      files:
+        - "rule/special_53.txt"
 
   - tag: cache_special_53
     type: cache
@@ -126,6 +150,12 @@ plugins:
       socks5: ""
       local_config: "srs/special_54.json"
 
+  - tag: special_manual_54
+    type: domain_set_light
+    args:
+      files:
+        - "rule/special_54.txt"
+
   - tag: cache_special_54
     type: cache
     args:
@@ -155,6 +185,12 @@ plugins:
     args:
       socks5: ""
       local_config: "srs/special_55.json"
+
+  - tag: special_manual_55
+    type: domain_set_light
+    args:
+      files:
+        - "rule/special_55.txt"
 
   - tag: cache_special_55
     type: cache
@@ -186,6 +222,12 @@ plugins:
       socks5: ""
       local_config: "srs/special_56.json"
 
+  - tag: special_manual_56
+    type: domain_set_light
+    args:
+      files:
+        - "rule/special_56.txt"
+
   - tag: cache_special_56
     type: cache
     args:
@@ -215,6 +257,12 @@ plugins:
     args:
       socks5: ""
       local_config: "srs/special_57.json"
+
+  - tag: special_manual_57
+    type: domain_set_light
+    args:
+      files:
+        - "rule/special_57.txt"
 
   - tag: cache_special_57
     type: cache
@@ -246,6 +294,12 @@ plugins:
       socks5: ""
       local_config: "srs/special_58.json"
 
+  - tag: special_manual_58
+    type: domain_set_light
+    args:
+      files:
+        - "rule/special_58.txt"
+
   - tag: cache_special_58
     type: cache
     args:
@@ -275,6 +329,12 @@ plugins:
     args:
       socks5: ""
       local_config: "srs/special_59.json"
+
+  - tag: special_manual_59
+    type: domain_set_light
+    args:
+      files:
+        - "rule/special_59.txt"
 
   - tag: cache_special_59
     type: cache
@@ -309,31 +369,61 @@ plugins:
         - tag: special_route_50
           ctx_mark: 50
           output_tag: "特殊上游50"
+        - tag: special_manual_50
+          ctx_mark: 50
+          output_tag: "特殊上游50"
         - tag: special_route_51
+          ctx_mark: 51
+          output_tag: "特殊上游51"
+        - tag: special_manual_51
           ctx_mark: 51
           output_tag: "特殊上游51"
         - tag: special_route_52
           ctx_mark: 52
           output_tag: "特殊上游52"
+        - tag: special_manual_52
+          ctx_mark: 52
+          output_tag: "特殊上游52"
         - tag: special_route_53
+          ctx_mark: 53
+          output_tag: "特殊上游53"
+        - tag: special_manual_53
           ctx_mark: 53
           output_tag: "特殊上游53"
         - tag: special_route_54
           ctx_mark: 54
           output_tag: "特殊上游54"
+        - tag: special_manual_54
+          ctx_mark: 54
+          output_tag: "特殊上游54"
         - tag: special_route_55
+          ctx_mark: 55
+          output_tag: "特殊上游55"
+        - tag: special_manual_55
           ctx_mark: 55
           output_tag: "特殊上游55"
         - tag: special_route_56
           ctx_mark: 56
           output_tag: "特殊上游56"
+        - tag: special_manual_56
+          ctx_mark: 56
+          output_tag: "特殊上游56"
         - tag: special_route_57
+          ctx_mark: 57
+          output_tag: "特殊上游57"
+        - tag: special_manual_57
           ctx_mark: 57
           output_tag: "特殊上游57"
         - tag: special_route_58
           ctx_mark: 58
           output_tag: "特殊上游58"
+        - tag: special_manual_58
+          ctx_mark: 58
+          output_tag: "特殊上游58"
         - tag: special_route_59
+          ctx_mark: 59
+          output_tag: "特殊上游59"
+        - tag: special_manual_59
           ctx_mark: 59
           output_tag: "特殊上游59"
 
