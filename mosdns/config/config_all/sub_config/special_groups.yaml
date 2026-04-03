@@ -1,0 +1,510 @@
+plugins:
+# 特殊上游槽位 50-59：用于 WebUI 创建可绑定专属上游和专属缓存的域名分流组
+  - tag: special_route_50
+    type: sd_set_light
+    args:
+      socks5: ""
+      local_config: "srs/special_50.json"
+
+  - tag: cache_special_50
+    type: cache
+    args:
+      size: 20000000
+      lazy_cache_ttl: 259200000
+      dump_file: cache/cache_special_50.dump
+      dump_interval: 36000
+
+  - tag: special_upstream_50
+    type: aliapi
+    args:
+      concurrent: 2
+      upstreams:
+        - addr: "223.5.5.5"
+
+  - tag: sequence_special_50
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_special_50
+      - exec: flow_setter group=special_50 sequence=sequence_special_50 upstream=special_upstream_50
+      - exec: $special_upstream_50
+      - exec: cname_remover
+
+  - tag: special_route_51
+    type: sd_set_light
+    args:
+      socks5: ""
+      local_config: "srs/special_51.json"
+
+  - tag: cache_special_51
+    type: cache
+    args:
+      size: 20000000
+      lazy_cache_ttl: 259200000
+      dump_file: cache/cache_special_51.dump
+      dump_interval: 36000
+
+  - tag: special_upstream_51
+    type: aliapi
+    args:
+      concurrent: 2
+      upstreams:
+        - addr: "223.5.5.5"
+
+  - tag: sequence_special_51
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_special_51
+      - exec: flow_setter group=special_51 sequence=sequence_special_51 upstream=special_upstream_51
+      - exec: $special_upstream_51
+      - exec: cname_remover
+
+  - tag: special_route_52
+    type: sd_set_light
+    args:
+      socks5: ""
+      local_config: "srs/special_52.json"
+
+  - tag: cache_special_52
+    type: cache
+    args:
+      size: 20000000
+      lazy_cache_ttl: 259200000
+      dump_file: cache/cache_special_52.dump
+      dump_interval: 36000
+
+  - tag: special_upstream_52
+    type: aliapi
+    args:
+      concurrent: 2
+      upstreams:
+        - addr: "223.5.5.5"
+
+  - tag: sequence_special_52
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_special_52
+      - exec: flow_setter group=special_52 sequence=sequence_special_52 upstream=special_upstream_52
+      - exec: $special_upstream_52
+      - exec: cname_remover
+
+  - tag: special_route_53
+    type: sd_set_light
+    args:
+      socks5: ""
+      local_config: "srs/special_53.json"
+
+  - tag: cache_special_53
+    type: cache
+    args:
+      size: 20000000
+      lazy_cache_ttl: 259200000
+      dump_file: cache/cache_special_53.dump
+      dump_interval: 36000
+
+  - tag: special_upstream_53
+    type: aliapi
+    args:
+      concurrent: 2
+      upstreams:
+        - addr: "223.5.5.5"
+
+  - tag: sequence_special_53
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_special_53
+      - exec: flow_setter group=special_53 sequence=sequence_special_53 upstream=special_upstream_53
+      - exec: $special_upstream_53
+      - exec: cname_remover
+
+  - tag: special_route_54
+    type: sd_set_light
+    args:
+      socks5: ""
+      local_config: "srs/special_54.json"
+
+  - tag: cache_special_54
+    type: cache
+    args:
+      size: 20000000
+      lazy_cache_ttl: 259200000
+      dump_file: cache/cache_special_54.dump
+      dump_interval: 36000
+
+  - tag: special_upstream_54
+    type: aliapi
+    args:
+      concurrent: 2
+      upstreams:
+        - addr: "223.5.5.5"
+
+  - tag: sequence_special_54
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_special_54
+      - exec: flow_setter group=special_54 sequence=sequence_special_54 upstream=special_upstream_54
+      - exec: $special_upstream_54
+      - exec: cname_remover
+
+  - tag: special_route_55
+    type: sd_set_light
+    args:
+      socks5: ""
+      local_config: "srs/special_55.json"
+
+  - tag: cache_special_55
+    type: cache
+    args:
+      size: 20000000
+      lazy_cache_ttl: 259200000
+      dump_file: cache/cache_special_55.dump
+      dump_interval: 36000
+
+  - tag: special_upstream_55
+    type: aliapi
+    args:
+      concurrent: 2
+      upstreams:
+        - addr: "223.5.5.5"
+
+  - tag: sequence_special_55
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_special_55
+      - exec: flow_setter group=special_55 sequence=sequence_special_55 upstream=special_upstream_55
+      - exec: $special_upstream_55
+      - exec: cname_remover
+
+  - tag: special_route_56
+    type: sd_set_light
+    args:
+      socks5: ""
+      local_config: "srs/special_56.json"
+
+  - tag: cache_special_56
+    type: cache
+    args:
+      size: 20000000
+      lazy_cache_ttl: 259200000
+      dump_file: cache/cache_special_56.dump
+      dump_interval: 36000
+
+  - tag: special_upstream_56
+    type: aliapi
+    args:
+      concurrent: 2
+      upstreams:
+        - addr: "223.5.5.5"
+
+  - tag: sequence_special_56
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_special_56
+      - exec: flow_setter group=special_56 sequence=sequence_special_56 upstream=special_upstream_56
+      - exec: $special_upstream_56
+      - exec: cname_remover
+
+  - tag: special_route_57
+    type: sd_set_light
+    args:
+      socks5: ""
+      local_config: "srs/special_57.json"
+
+  - tag: cache_special_57
+    type: cache
+    args:
+      size: 20000000
+      lazy_cache_ttl: 259200000
+      dump_file: cache/cache_special_57.dump
+      dump_interval: 36000
+
+  - tag: special_upstream_57
+    type: aliapi
+    args:
+      concurrent: 2
+      upstreams:
+        - addr: "223.5.5.5"
+
+  - tag: sequence_special_57
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_special_57
+      - exec: flow_setter group=special_57 sequence=sequence_special_57 upstream=special_upstream_57
+      - exec: $special_upstream_57
+      - exec: cname_remover
+
+  - tag: special_route_58
+    type: sd_set_light
+    args:
+      socks5: ""
+      local_config: "srs/special_58.json"
+
+  - tag: cache_special_58
+    type: cache
+    args:
+      size: 20000000
+      lazy_cache_ttl: 259200000
+      dump_file: cache/cache_special_58.dump
+      dump_interval: 36000
+
+  - tag: special_upstream_58
+    type: aliapi
+    args:
+      concurrent: 2
+      upstreams:
+        - addr: "223.5.5.5"
+
+  - tag: sequence_special_58
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_special_58
+      - exec: flow_setter group=special_58 sequence=sequence_special_58 upstream=special_upstream_58
+      - exec: $special_upstream_58
+      - exec: cname_remover
+
+  - tag: special_route_59
+    type: sd_set_light
+    args:
+      socks5: ""
+      local_config: "srs/special_59.json"
+
+  - tag: cache_special_59
+    type: cache
+    args:
+      size: 20000000
+      lazy_cache_ttl: 259200000
+      dump_file: cache/cache_special_59.dump
+      dump_interval: 36000
+
+  - tag: special_upstream_59
+    type: aliapi
+    args:
+      concurrent: 2
+      upstreams:
+        - addr: "223.5.5.5"
+
+  - tag: sequence_special_59
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_special_59
+      - exec: flow_setter group=special_59 sequence=sequence_special_59 upstream=special_upstream_59
+      - exec: $special_upstream_59
+      - exec: cname_remover
+
+  - tag: special_upstream_matcher
+    type: domain_mapper
+    args:
+      default_mark: 0
+      default_tag: ""
+      rules:
+        - tag: special_route_50
+          ctx_mark: 50
+          output_tag: "特殊上游50"
+        - tag: special_route_51
+          ctx_mark: 51
+          output_tag: "特殊上游51"
+        - tag: special_route_52
+          ctx_mark: 52
+          output_tag: "特殊上游52"
+        - tag: special_route_53
+          ctx_mark: 53
+          output_tag: "特殊上游53"
+        - tag: special_route_54
+          ctx_mark: 54
+          output_tag: "特殊上游54"
+        - tag: special_route_55
+          ctx_mark: 55
+          output_tag: "特殊上游55"
+        - tag: special_route_56
+          ctx_mark: 56
+          output_tag: "特殊上游56"
+        - tag: special_route_57
+          ctx_mark: 57
+          output_tag: "特殊上游57"
+        - tag: special_route_58
+          ctx_mark: 58
+          output_tag: "特殊上游58"
+        - tag: special_route_59
+          ctx_mark: 59
+          output_tag: "特殊上游59"
+
+  - tag: sequence_special_v4
+    type: sequence
+    args:
+      - matches:
+        - mark 50
+        exec: $sequence_special_50
+      - matches:
+        - mark 50
+        exec: exit
+      - matches:
+        - mark 51
+        exec: $sequence_special_51
+      - matches:
+        - mark 51
+        exec: exit
+      - matches:
+        - mark 52
+        exec: $sequence_special_52
+      - matches:
+        - mark 52
+        exec: exit
+      - matches:
+        - mark 53
+        exec: $sequence_special_53
+      - matches:
+        - mark 53
+        exec: exit
+      - matches:
+        - mark 54
+        exec: $sequence_special_54
+      - matches:
+        - mark 54
+        exec: exit
+      - matches:
+        - mark 55
+        exec: $sequence_special_55
+      - matches:
+        - mark 55
+        exec: exit
+      - matches:
+        - mark 56
+        exec: $sequence_special_56
+      - matches:
+        - mark 56
+        exec: exit
+      - matches:
+        - mark 57
+        exec: $sequence_special_57
+      - matches:
+        - mark 57
+        exec: exit
+      - matches:
+        - mark 58
+        exec: $sequence_special_58
+      - matches:
+        - mark 58
+        exec: exit
+      - matches:
+        - mark 59
+        exec: $sequence_special_59
+      - matches:
+        - mark 59
+        exec: exit
+
+  - tag: sequence_special_v6
+    type: sequence
+    args:
+      - matches:
+        - mark 50
+        exec: $sequence_special_50
+      - matches:
+        - mark 50
+        exec: exit
+      - matches:
+        - mark 51
+        exec: $sequence_special_51
+      - matches:
+        - mark 51
+        exec: exit
+      - matches:
+        - mark 52
+        exec: $sequence_special_52
+      - matches:
+        - mark 52
+        exec: exit
+      - matches:
+        - mark 53
+        exec: $sequence_special_53
+      - matches:
+        - mark 53
+        exec: exit
+      - matches:
+        - mark 54
+        exec: $sequence_special_54
+      - matches:
+        - mark 54
+        exec: exit
+      - matches:
+        - mark 55
+        exec: $sequence_special_55
+      - matches:
+        - mark 55
+        exec: exit
+      - matches:
+        - mark 56
+        exec: $sequence_special_56
+      - matches:
+        - mark 56
+        exec: exit
+      - matches:
+        - mark 57
+        exec: $sequence_special_57
+      - matches:
+        - mark 57
+        exec: exit
+      - matches:
+        - mark 58
+        exec: $sequence_special_58
+      - matches:
+        - mark 58
+        exec: exit
+      - matches:
+        - mark 59
+        exec: $sequence_special_59
+      - matches:
+        - mark 59
+        exec: exit
+
+  - tag: sequence_special_ot
+    type: sequence
+    args:
+      - matches: mark 50
+        exec: $sequence_special_50
+      - matches: mark 50
+        exec: exit
+      - matches: mark 51
+        exec: $sequence_special_51
+      - matches: mark 51
+        exec: exit
+      - matches: mark 52
+        exec: $sequence_special_52
+      - matches: mark 52
+        exec: exit
+      - matches: mark 53
+        exec: $sequence_special_53
+      - matches: mark 53
+        exec: exit
+      - matches: mark 54
+        exec: $sequence_special_54
+      - matches: mark 54
+        exec: exit
+      - matches: mark 55
+        exec: $sequence_special_55
+      - matches: mark 55
+        exec: exit
+      - matches: mark 56
+        exec: $sequence_special_56
+      - matches: mark 56
+        exec: exit
+      - matches: mark 57
+        exec: $sequence_special_57
+      - matches: mark 57
+        exec: exit
+      - matches: mark 58
+        exec: $sequence_special_58
+      - matches: mark 58
+        exec: exit
+      - matches: mark 59
+        exec: $sequence_special_59
+      - matches: mark 59
+        exec: exit
