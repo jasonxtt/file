@@ -3,7 +3,7 @@
     "name": "cuscn",
     "type": "cuscn",
     "files": "srs/geosite-geolocation-!cn@cn.srs",
-    "url": "https://raw.githubusercontent.com/nekolsd/sing-geosite/refs/heads/rule-set/geosite-geolocation-!cn%40cn.srs",
+    "url": "https://raw.githubusercontent.com/nekolsd/sing-geosite/refs/heads/rule-set/geolocation-!cn%40cn.srs",
     "enabled": true,
     "auto_update": false,
     "update_interval_hours": 24,
