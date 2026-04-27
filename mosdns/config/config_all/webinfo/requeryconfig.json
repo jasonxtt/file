@@ -39,7 +39,7 @@
   },
   "execution_settings": {
     "queries_per_second": 10,
-    "resolver_address": "127.0.0.1:66",
+    "resolver_address": "127.0.0.1:3066",
     "url_call_delay_ms": 50,
     "date_range_days": 30
   },
