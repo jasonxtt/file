@@ -20,101 +20,101 @@ plugins:
   - tag: sequence_local_exit
     type: sequence
     args:
-      - matches: switch4 'A'
-        exec: $cache_cn
-      - exec: $domestic
+      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+        exec: $cache_cn                             #定义: sub_config/cache.yaml:27
+      - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
       - exec: exit
 
   - tag: sequence_local_exit_requery
     type: sequence
     args:
-      - matches: switch4 'A'
-        exec: $cache_cn
-      - exec: $domestic
+      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+        exec: $cache_cn                             #定义: sub_config/cache.yaml:27
+      - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
-      - matches:                                   
-        - qtype 1                           #A请求
+      - matches:
+        - qtype 1                                   #A请求
         - "!resp_ip 0.0.0.0/0"
-        exec: $foreign
-      - matches:                                   
-        - qtype 1                           #A请求
+        exec: $foreign                              #定义: sub_config/forward_nocn.yaml:4
+      - matches:
+        - qtype 1                                   #A请求
         - "!resp_ip 0.0.0.0/0"
-        exec: $my_nov4list
-      - matches:                                   
-        - qtype 28                          #AAAA请求
+        exec: $my_nov4list                          #定义: sub_config/domain_output.yaml:69
+      - matches:
+        - qtype 28                                  #AAAA请求
         - "!resp_ip 2000::/3"
-        exec: $my_nov6list
+        exec: $my_nov6list                          #定义: sub_config/domain_output.yaml:54
       - exec: exit
 
 #缓存序列-国内域名realip
   - tag: sequence_local_addlist_exit
     type: sequence
     args:
-      - matches: switch4 'A'
-        exec: $cache_cn
-      - exec: $domestic
+      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+        exec: $cache_cn                             #定义: sub_config/cache.yaml:27
+      - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
-      - matches: "!fast_mark 11" #不在记忆直连和特殊域名列表中
-        exec: $my_realiplist  #加入自生成国内域名列表
+      - matches: "!fast_mark 11"                    #不在记忆直连和特殊域名列表中
+        exec: $my_realiplist                        #加入自生成国内域名列表；定义: sub_config/domain_output.yaml:25
       - exec: exit
 
   - tag: sequence_local_addlist_exit_v6
     type: sequence
     args:
-      - matches: switch4 'A'
-        exec: $cache_cn
-      - exec: $domestic
+      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+        exec: $cache_cn                             #定义: sub_config/cache.yaml:27
+      - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
-      - matches: "!fast_mark 11" #不在记忆直连和特殊域名列表中
-        exec: $my_realiplist  #加入自生成国内域名列表
-      - matches:                                   
-        - "!fast_mark 3"                    #不在无V6清单中
+      - matches: "!fast_mark 11"                    #不在记忆直连和特殊域名列表中
+        exec: $my_realiplist                        #加入自生成国内域名列表；定义: sub_config/domain_output.yaml:25
+      - matches:
+        - "!fast_mark 3"                            #不在无V6清单中
         - "!resp_ip 2000::/3"
-        exec: $my_nov6list
+        exec: $my_nov6list                          #定义: sub_config/domain_output.yaml:54
       - exec: exit
 
   - tag: sequence_local_addlist_exit_requery
     type: sequence
     args:
-      - matches: switch4 'A'
-        exec: $cache_cn
-      - exec: $domestic
+      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+        exec: $cache_cn                             #定义: sub_config/cache.yaml:27
+      - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
-      - matches:                                   
-        - qtype 28                          #AAAA请求
+      - matches:
+        - qtype 28                                  #AAAA请求
         - "!resp_ip 2000::/3"
-        exec: $my_nov6list
-      - matches:                                   
-        - qtype 1                           #A请求
+        exec: $my_nov6list                          #定义: sub_config/domain_output.yaml:54
+      - matches:
+        - qtype 1                                   #A请求
         - "!resp_ip 0.0.0.0/0"
         exec: fast_mark 19
-      - matches: fast_mark 19                                   
-        exec: $foreign
-      - matches:                                   
-        - qtype 1                           #A请求
+      - matches: fast_mark 19
+        exec: $foreign                              #定义: sub_config/forward_nocn.yaml:4
+      - matches:
+        - qtype 1                                   #A请求
         - "!resp_ip 0.0.0.0/0"
-        exec: $my_nov4list
-      - matches:                                   
-        - fast_mark 19                      #A请求
-        - "resp_ip 0.0.0.0/0"               #有IP
-        - "!resp_ip $geoip_cn"              #但是没有cn ip
+        exec: $my_nov4list                          #定义: sub_config/domain_output.yaml:69
+      - matches:
+        - fast_mark 19                              #A请求
+        - "resp_ip 0.0.0.0/0"                       #有IP
+        - "!resp_ip $geoip_cn"                      #但是没有cn ip
         exec:
           - $my_fakeiplist
           - $my_sv4list
-          - drop_resp    
-          - $nocnfake                  
-          - exit                          
-      - matches: "!fast_mark 11" #不在记忆直连和特殊域名列表中
-        exec: $my_realiplist     #加入自生成国内域名列表
+          - drop_resp
+          - $nocnfake
+          - exit
+      - matches: "!fast_mark 11"                    #不在记忆直连和特殊域名列表中
+        exec: $my_realiplist                        #加入自生成国内域名列表；定义: sub_config/domain_output.yaml:25
       - exec: exit
 
   - tag: sequence_local
     type: sequence
     args:
-      - matches: switch4 'A'
-        exec: $cache_cn
-      - exec: $domestic
+      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+        exec: $cache_cn                             #定义: sub_config/cache.yaml:27
+      - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
 
 
@@ -122,123 +122,123 @@ plugins:
   - tag: sequence_addrealiplist_exit
     type: sequence
     args:
-      - matches: "!fast_mark 11" #不在记忆直连和特殊域名列表中
-        exec: $my_realiplist  #加入自生成国内域名列表
+      - matches: "!fast_mark 11"                    #不在记忆直连和特殊域名列表中
+        exec: $my_realiplist                        #加入自生成国内域名列表；定义: sub_config/domain_output.yaml:25
       - exec: exit
 
 #向mihomo请求国内的fakeip序列，重新向国内dns请求
   - tag: sequence_local_fake
     type: sequence
     args:
-      - matches: switch4 'A'
-        exec: $cache_cnmihomo
+      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
       - matches: fast_mark 10
-        exec: $sequence_local
+        exec: $sequence_local                       #定义: sub_config/forward_1.yaml:112
       - matches: "!fast_mark 10"
-        exec: $cnfake
+        exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
       - exec: ttl 5
 
   - tag: sequence_local_fake_clashmi
     type: sequence
     args:
-      - matches: switch4 'A'
-        exec: $cache_cnmihomo
+      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
       - matches: fast_mark 10
-        exec: $sequence_local
+        exec: $sequence_local                       #定义: sub_config/forward_1.yaml:112
       - matches: "!fast_mark 10"
-        exec: $cnfake
+        exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
       - exec: ttl 5
 
 #向mihomo请求国内的fakeip序列并缓存
   - tag: sequence_local_fake_pure
     type: sequence
     args:
-      - matches: switch4 'A'
-        exec: $cache_cnmihomo
-      - exec: $cnfake
+      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
+      - exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
       - exec: ttl 5
 
 #向mihomo请求国内的fakeip序列、加入清单并结束
   - tag: sequence_localfake_addlist_exit
     type: sequence
     args:
-      - matches: switch4 'A'
-        exec: $cache_cnmihomo
-      - exec: $cnfake
+      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
+      - exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
       - exec: ttl 5
-      - matches: "!fast_mark 11" #不在记忆直连和特殊域名列表中
-        exec: $my_realiplist     #加入自生成国内域名列表
+      - matches: "!fast_mark 11"                    #不在记忆直连和特殊域名列表中
+        exec: $my_realiplist                        #加入自生成国内域名列表；定义: sub_config/domain_output.yaml:25
       - exec: exit
 
   - tag: sequence_localfake_addlist_exit_requery
     type: sequence
     args:
-      - exec: $domestic
+      - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
-      - matches:                                   
-        - qtype 28                          #AAAA请求
+      - matches:
+        - qtype 28                                  #AAAA请求
         - "!resp_ip 2000::/3"
-        exec: $my_nov6list
-      - matches:                                   
-        - qtype 1                           #A请求
+        exec: $my_nov6list                          #定义: sub_config/domain_output.yaml:54
+      - matches:
+        - qtype 1                                   #A请求
         - "!resp_ip 0.0.0.0/0"
         exec: fast_mark 19
-      - matches: fast_mark 19                                   
-        exec: $foreign
-      - matches:                                   
-        - qtype 1                           #A请求
+      - matches: fast_mark 19
+        exec: $foreign                              #定义: sub_config/forward_nocn.yaml:4
+      - matches:
+        - qtype 1                                   #A请求
         - "!resp_ip 0.0.0.0/0"
-        exec: $my_nov4list
-      - matches:                                   
-        - fast_mark 19                      #A请求
-        - "resp_ip 0.0.0.0/0"               #有IP
-        - "!resp_ip $geoip_cn"              #但是没有cn ip
+        exec: $my_nov4list                          #定义: sub_config/domain_output.yaml:69
+      - matches:
+        - fast_mark 19                              #A请求
+        - "resp_ip 0.0.0.0/0"                       #有IP
+        - "!resp_ip $geoip_cn"                      #但是没有cn ip
         exec:
           - $my_fakeiplist
           - $my_sv4list
-          - drop_resp    
-          - $nocnfake                  
-          - exit 
+          - drop_resp
+          - $nocnfake
+          - exit
       - exec: drop_resp
-      - matches: switch4 'A'
-        exec: $cache_cnmihomo
-      - exec: $cnfake
+      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
+      - exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
       - exec: ttl 5
-      - matches: "!fast_mark 11" #不在记忆直连和特殊域名列表中
-        exec: $my_realiplist     #加入自生成国内域名列表
+      - matches: "!fast_mark 11"                    #不在记忆直连和特殊域名列表中
+        exec: $my_realiplist                        #加入自生成国内域名列表；定义: sub_config/domain_output.yaml:25
       - exec: exit
 
 #向mihomo请求国内的fakeip序列并结束
   - tag: sequence_localfake_exit
     type: sequence
     args:
-      - matches: switch4 'A'
-        exec: $cache_cnmihomo
-      - exec: $cnfake
+      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
+      - exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
       - exec: ttl 5
       - exec: exit
 
   - tag: sequence_localfake_exit_requery
     type: sequence
     args:
-      - exec: $domestic
+      - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
-      - matches:                                   
-        - qtype 1                           #A请求
+      - matches:
+        - qtype 1                                   #A请求
         - "!resp_ip 0.0.0.0/0"
-        exec: $foreign
-      - matches:                                   
-        - qtype 1                           #A请求
+        exec: $foreign                              #定义: sub_config/forward_nocn.yaml:4
+      - matches:
+        - qtype 1                                   #A请求
         - "!resp_ip 0.0.0.0/0"
-        exec: $my_nov4list
-      - matches:                                   
-        - qtype 28                 #AAAA请求
+        exec: $my_nov4list                          #定义: sub_config/domain_output.yaml:69
+      - matches:
+        - qtype 28                                  #AAAA请求
         - "!resp_ip 2000::/3"
-        exec: $my_nov6list
+        exec: $my_nov6list                          #定义: sub_config/domain_output.yaml:54
       - exec: drop_resp
-      - matches: switch4 'A'
-        exec: $cache_cnmihomo
-      - exec: $cnfake
+      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
+      - exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
       - exec: ttl 5
       - exec: exit
 
@@ -246,18 +246,18 @@ plugins:
   - tag: sequence_google
     type: sequence
     args:
-      - matches: switch4 'A'
-        exec: $cache_google
-      - exec: $foreign
+      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+        exec: $cache_google                         #定义: sub_config/cache.yaml:36
+      - exec: $foreign                              #定义: sub_config/forward_nocn.yaml:4
       - exec: cname_remover
 
 #缓存序列-列表外域名
   - tag: sequence_google_exit
     type: sequence
     args:
-      - matches: switch4 'A'
-        exec: $cache_google
-      - exec: $foreign
+      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+        exec: $cache_google                         #定义: sub_config/cache.yaml:36
+      - exec: $foreign                              #定义: sub_config/forward_nocn.yaml:4
       - exec: cname_remover
       - exec: exit
 
@@ -265,23 +265,23 @@ plugins:
   - tag: sequence_fakeip_addlist_exit
     type: sequence
     args:
-      - exec: $nocnfake
-      - matches: "!fast_mark 12"       
-        exec: $my_fakeiplist     #加入自生成国外域名列表
+      - exec: $nocnfake                             #定义: sub_config/forward_1.yaml:4
+      - matches: "!fast_mark 12"
+        exec: $my_fakeiplist                        #加入自生成国外域名列表；定义: sub_config/domain_output.yaml:38
       - exec: exit
 
 #请求fakeip并结束
   - tag: sequence_fakeip_exit
     type: sequence
     args:
-      - exec: $nocnfake
+      - exec: $nocnfake                             #定义: sub_config/forward_1.yaml:4
       - exec: exit
 
 #国内域名 内部使用
   - tag: sequence_local_in
     type: sequence
     args:
-      - exec: $sequence_local
+      - exec: $sequence_local                       #定义: sub_config/forward_1.yaml:112
 
 #国内
   - tag: udp_local

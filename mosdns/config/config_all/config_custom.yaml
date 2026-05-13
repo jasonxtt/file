@@ -8,73 +8,73 @@ api:
 
 #子配置，不要调整顺序
 include:
-  - "sub_config/adguard.yaml"               #Adguard插件
-  - "sub_config/domain_output.yaml"         #域名规则生成输出插件定义
-  - "sub_config/rule_set.yaml"              #数据插件定义
-  - "sub_config/cache.yaml"                 #缓存插件定义
-  - "sub_config/forward_local.yaml"         #带过期缓存的内部使用国内dns服务器
-  - "sub_config/forward_nocn.yaml"          #带过期缓存的内部使用国外dns服务器
-  - "sub_config/forward_nocn_ecs.yaml"      #带过期缓存的内部使用国外dns服务器（带ecs）节点使用
-  - "sub_config/forward_1.yaml"             #使用前面定义的内部dns服务器定义序列 1代表调用层级 大的调用小的
-  - "sub_config/special_groups.yaml"        #特殊上游组 50-59 槽位定义
-  - "sub_config/switch.yaml"                #切换开关定义
-  - "sub_config/process_ot.yaml"            #主分流序列-其它类型dns请求
-  - "sub_config/process_v4.yaml"            #主分流序列-IPV4类型dns请求
-  - "sub_config/process_v6.yaml"            #主分流序列-IPV6类型dns请求
-  - "sub_config/for_singbox.yaml"           #专供sing-box使用
-  - "sub_config/webinfo.yaml"               #前端信息与配置存储
-  - "sub_config/requery.yaml"               #分流与缓存刷新功能
+  - "sub_config/adguard.yaml"                   #Adguard插件
+  - "sub_config/domain_output.yaml"             #域名规则生成输出插件定义
+  - "sub_config/rule_set.yaml"                  #数据插件定义
+  - "sub_config/cache.yaml"                     #缓存插件定义
+  - "sub_config/forward_local.yaml"             #带过期缓存的内部使用国内dns服务器
+  - "sub_config/forward_nocn.yaml"              #带过期缓存的内部使用国外dns服务器
+  - "sub_config/forward_nocn_ecs.yaml"          #带过期缓存的内部使用国外dns服务器（带ecs）节点使用
+  - "sub_config/forward_1.yaml"                 #使用前面定义的内部dns服务器定义序列 1代表调用层级 大的调用小的
+  - "sub_config/special_groups.yaml"            #特殊上游组 50-59 槽位定义
+  - "sub_config/switch.yaml"                    #切换开关定义
+  - "sub_config/process_ot.yaml"                #主分流序列-其它类型dns请求
+  - "sub_config/process_v4.yaml"                #主分流序列-IPV4类型dns请求
+  - "sub_config/process_v6.yaml"                #主分流序列-IPV6类型dns请求
+  - "sub_config/for_singbox.yaml"               #专供sing-box使用
+  - "sub_config/webinfo.yaml"                   #前端信息与配置存储
+  - "sub_config/requery.yaml"                   #分流与缓存刷新功能
 
 plugins:
   - tag: sequence_6666
     type: sequence
     args:
-      - exec: $rewrite                      #匹配成功重定向后直接结束不执行后续流程
-      - matches:                            #阻止SOA PTR HTTPS类型的dns查询
+      - exec: $rewrite                          #匹配成功重定向后直接结束不执行后续流程；定义: sub_config/rule_set.yaml:10
+      - matches:                                #阻止SOA PTR HTTPS类型的dns查询
         - "qtype 6 12 65"
-        - switch5 'A'
+        - switch5 'A'                           #定义: sub_config/switch.yaml:48
         exec: reject 0
-      - matches:                            #阻止AAAA类型的dns查询
+      - matches:                                #阻止AAAA类型的dns查询
         - "qtype 28"
-        - switch6 'A'
+        - switch6 'A'                           #定义: sub_config/switch.yaml:55
         exec: reject 0
-      - matches: "!fast_mark 48"            #可以视为在快速路径中没有比对过
-        exec: $unified_matcher1             #匹配屏蔽域名表并设置相应的fast_mark
-      - exec: $special_upstream_matcher     #匹配专属分流组并设置 50-59 mark
-      - matches: switch8 'A'                #IPv4优先：存在A记录时抑制AAAA结果
+      - matches: "!fast_mark 48"                #可以视为在快速路径中没有比对过
+        exec: $unified_matcher1                 #匹配屏蔽域名表并设置相应的fast_mark；定义: sub_config/rule_set.yaml:151
+      - exec: $special_upstream_matcher         #匹配专属分流组并设置 50-59 mark；定义: sub_config/special_groups.yaml:363
+      - matches: switch8 'A'                    #IPv4优先：存在A记录时抑制AAAA结果；定义: sub_config/switch.yaml:74
         exec: prefer_ipv4
-      - matches:                            #屏蔽没有v4地址的域名
+      - matches:                                #屏蔽没有v4地址的域名
         - fast_mark 2
         - qtype 1
-        - switch1 'A'
+        - switch1 'A'                           #定义: sub_config/switch.yaml:6
         exec: reject 0
-      - matches:                            #屏蔽没有v6地址的域名
+      - matches:                                #屏蔽没有v6地址的域名
         - fast_mark 3
         - qtype 28
-        - switch1 'A'
+        - switch1 'A'                           #定义: sub_config/switch.yaml:6
         exec: reject 0
-      - matches:                            #屏蔽黑名单域名
+      - matches:                                #屏蔽黑名单域名
         - fast_mark 1
-        - switch1 'A'
+        - switch1 'A'                           #定义: sub_config/switch.yaml:6
         exec: reject 3
-      - matches:                            #屏蔽广告
+      - matches:                                #屏蔽广告
         - fast_mark 5
-        - switch7 'A'
+        - switch7 'A'                           #定义: sub_config/switch.yaml:62
         exec: reject 3
-      - matches: fast_mark 6                #向上游请求ddns域名，无过期缓存
+      - matches: fast_mark 6                    #向上游请求ddns域名，无过期缓存
         exec:
           - $domestic
           - exit
-      - matches:                            #当mosdns占用53直面客户端，只有client_ip.txt中指定的IP才科学       
-        - "!fast_mark 48"                   #在快速路径中没有比对过
-        - switch2 'A'
-        - switch12 'B'
+      - matches:                                #当mosdns占用53直面客户端，只有client_ip.txt中指定的IP才科学
+        - "!fast_mark 48"                       #在快速路径中没有比对过
+        - switch2 'A'                           #定义: sub_config/switch.yaml:13
+        - switch12 'B'                          #定义: sub_config/switch.yaml:20
         - "!client_ip $client_ip"
         exec: fast_mark 30
-      - matches:                            #当mosdns占用53直面客户端，client_ip.txt中指定的IP不科学
-        - "!fast_mark 48"                   #在快速路径中没有比对过
-        - switch2 'B'
-        - switch12 'A'
+      - matches:                                #当mosdns占用53直面客户端，client_ip.txt中指定的IP不科学
+        - "!fast_mark 48"                       #在快速路径中没有比对过
+        - switch2 'B'                           #定义: sub_config/switch.yaml:13
+        - switch12 'A'                          #定义: sub_config/switch.yaml:20
         - "client_ip $client_ip"
         exec: fast_mark 30
       - matches: fast_mark 30
@@ -82,33 +82,33 @@ plugins:
           - $sequence_local
           - tag_setter 指定客户端直连
           - exit
-      - matches:                            #web ui中选择泄露版（默认），用cache_all，否则用cache_all_noleak
-        - switch3 'A'                       #泄露模式
-        - switch13 'A'                      #缓存开关打开
-        exec: $cache_all
+      - matches:                                #web ui中选择泄露版（默认），用cache_all，否则用cache_all_noleak
+        - switch3 'A'                           #泄露模式；定义: sub_config/switch.yaml:27
+        - switch13 'A'                          #缓存开关打开；定义: sub_config/switch.yaml:41
+        exec: $cache_all                        #定义: sub_config/cache.yaml:3
       - matches:
-        - switch3 'B'                       #非泄露模式
-        - switch13 'A'                      #缓存开关打开
-        exec: $cache_all_noleak
-      - exec: $top_domains
-      - matches:                                   
-        - qtype 1                           #A请求
-        - switch9 'A'                       #cnfake关闭
-        exec: $sequence_ipv4_cnfakeoff
-      - matches:                                   
-        - qtype 1                           #A请求
-        - switch9 'B'                       #cnfake开启
-        exec: $sequence_ipv4_cnfakeon
-      - matches:                                   
-        - qtype 28                          #AAAA请求
-        - switch9 'A'                       #cnfake关闭
-        exec: $sequence_ipv6_cnfakeoff
-      - matches:                                   
-        - qtype 28                          #AAAA请求
-        - switch9 'B'                       #cnfake开启
-        exec: $sequence_ipv6_cnfakeon
-      - matches: "!qtype 1 28"              #处理非A、AAAA请求
-        exec: $sequence_other
+        - switch3 'B'                           #非泄露模式；定义: sub_config/switch.yaml:27
+        - switch13 'A'                          #缓存开关打开；定义: sub_config/switch.yaml:41
+        exec: $cache_all_noleak                 #定义: sub_config/cache.yaml:15
+      - exec: $top_domains                      #定义: sub_config/domain_output.yaml:16
+      - matches:
+        - qtype 1                               #A请求
+        - switch9 'A'                           #cnfake关闭；定义: sub_config/switch.yaml:68
+        exec: $sequence_ipv4_cnfakeoff          #定义: sub_config/process_v4.yaml:17
+      - matches:
+        - qtype 1                               #A请求
+        - switch9 'B'                           #cnfake开启；定义: sub_config/switch.yaml:68
+        exec: $sequence_ipv4_cnfakeon           #定义: sub_config/process_v4.yaml:72
+      - matches:
+        - qtype 28                              #AAAA请求
+        - switch9 'A'                           #cnfake关闭；定义: sub_config/switch.yaml:68
+        exec: $sequence_ipv6_cnfakeoff          #定义: sub_config/process_v6.yaml:3
+      - matches:
+        - qtype 28                              #AAAA请求
+        - switch9 'B'                           #cnfake开启；定义: sub_config/switch.yaml:68
+        exec: $sequence_ipv6_cnfakeon           #定义: sub_config/process_v6.yaml:65
+      - matches: "!qtype 1 28"                  #处理非A、AAAA请求
+        exec: $sequence_other                   #定义: sub_config/process_ot.yaml:3
 
 
 #对外服务器
@@ -130,52 +130,52 @@ plugins:
   - tag: sequence_requery
     type: sequence
     args:
-      - exec: $rewrite   
-      - matches:                            #阻止SOA PTR HTTPS类型的dns查询
+      - exec: $rewrite                          #定义: sub_config/rule_set.yaml:10
+      - matches:                                #阻止SOA PTR HTTPS类型的dns查询
         - "qtype 6 12 65"
-        - switch5 'A'
+        - switch5 'A'                           #定义: sub_config/switch.yaml:48
         exec: reject 0
-      - matches:                            #阻止AAAA类型的dns查询
+      - matches:                                #阻止AAAA类型的dns查询
         - "qtype 28"
-        - switch6 'A'
+        - switch6 'A'                           #定义: sub_config/switch.yaml:55
         exec: reject 0
-      - matches: "!fast_mark 48"            #可以视为在快速路径中没有比对过
-        exec: $unified_matcher1             #匹配屏蔽域名表并设置相应的fast_mark
-      - exec: $special_upstream_matcher     #匹配专属分流组并设置 50-59 mark
-      - matches: switch8 'A'                #IPv4优先：存在A记录时抑制AAAA结果
+      - matches: "!fast_mark 48"                #可以视为在快速路径中没有比对过
+        exec: $unified_matcher1                 #匹配屏蔽域名表并设置相应的fast_mark；定义: sub_config/rule_set.yaml:151
+      - exec: $special_upstream_matcher         #匹配专属分流组并设置 50-59 mark；定义: sub_config/special_groups.yaml:363
+      - matches: switch8 'A'                    #IPv4优先：存在A记录时抑制AAAA结果；定义: sub_config/switch.yaml:74
         exec: prefer_ipv4
-      - matches:                            #屏蔽没有v4地址的域名
+      - matches:                                #屏蔽没有v4地址的域名
         - fast_mark 2
         - qtype 1
-        - switch1 'A'
+        - switch1 'A'                           #定义: sub_config/switch.yaml:6
         exec: reject 0
-      - matches:                            #屏蔽没有v6地址的域名
+      - matches:                                #屏蔽没有v6地址的域名
         - fast_mark 3
         - qtype 28
-        - switch1 'A'
+        - switch1 'A'                           #定义: sub_config/switch.yaml:6
         exec: reject 0
-      - matches:                            #屏蔽黑名单域名
+      - matches:                                #屏蔽黑名单域名
         - fast_mark 1
-        - switch1 'A'
+        - switch1 'A'                           #定义: sub_config/switch.yaml:6
         exec: reject 3
-      - matches:                            #屏蔽广告
+      - matches:                                #屏蔽广告
         - fast_mark 5
-        - switch7 'A'
+        - switch7 'A'                           #定义: sub_config/switch.yaml:62
         exec: reject 3
-      - matches: fast_mark 6                #向上游请求ddns域名，无过期缓存
+      - matches: fast_mark 6                    #向上游请求ddns域名，无过期缓存
         exec:
           - $domestic
           - exit
-      - matches:                            #当mosdns占用53直面客户端，只有client_ip.txt中指定的IP才科学       
-        - "!fast_mark 48"                   #在快速路径中没有比对过
-        - switch2 'A'
-        - switch12 'B'
+      - matches:                                #当mosdns占用53直面客户端，只有client_ip.txt中指定的IP才科学
+        - "!fast_mark 48"                       #在快速路径中没有比对过
+        - switch2 'A'                           #定义: sub_config/switch.yaml:13
+        - switch12 'B'                          #定义: sub_config/switch.yaml:20
         - "!client_ip $client_ip"
         exec: fast_mark 30
-      - matches:                            #当mosdns占用53直面客户端，client_ip.txt中指定的IP不科学
-        - "!fast_mark 48"                   #在快速路径中没有比对过
-        - switch2 'B'
-        - switch12 'A'
+      - matches:                                #当mosdns占用53直面客户端，client_ip.txt中指定的IP不科学
+        - "!fast_mark 48"                       #在快速路径中没有比对过
+        - switch2 'B'                           #定义: sub_config/switch.yaml:13
+        - switch12 'A'                          #定义: sub_config/switch.yaml:20
         - "client_ip $client_ip"
         exec: fast_mark 30
       - matches: fast_mark 30
@@ -183,32 +183,32 @@ plugins:
           - $sequence_local
           - tag_setter 指定客户端直连
           - exit
-      - matches:                            #web ui中选择泄露版（默认），用cache_all，否则用cache_all_noleak
-        - switch3 'A'                       #泄露模式
-        - switch13 'A'                      #缓存开关打开
-        exec: $cache_all
+      - matches:                                #web ui中选择泄露版（默认），用cache_all，否则用cache_all_noleak
+        - switch3 'A'                           #泄露模式；定义: sub_config/switch.yaml:27
+        - switch13 'A'                          #缓存开关打开；定义: sub_config/switch.yaml:41
+        exec: $cache_all                        #定义: sub_config/cache.yaml:3
       - matches:
-        - switch3 'B'                       #非泄露模式
-        - switch13 'A'                      #缓存开关打开
-        exec: $cache_all_noleak
-      - matches:                                   
-        - qtype 1                           #A请求
-        - switch9 'A'                       #cnfake关闭
-        exec: $sequence_ipv4_cnfakeoff_requery
-      - matches:                                   
-        - qtype 1                           #A请求
-        - switch9 'B'                       #cnfake开启
-        exec: $sequence_ipv4_cnfakeon_requery
-      - matches:                                   
-        - qtype 28                          #AAAA请求
-        - switch9 'A'                       #cnfake关闭
-        exec: $sequence_ipv6_cnfakeoff_requery
-      - matches:                                   
-        - qtype 28                          #AAAA请求
-        - switch9 'B'                       #cnfake开启
-        exec: $sequence_ipv6_cnfakeon_requery
-      - matches: "!qtype 1 28"              #处理非A、AAAA请求
-        exec: $sequence_other
+        - switch3 'B'                           #非泄露模式；定义: sub_config/switch.yaml:27
+        - switch13 'A'                          #缓存开关打开；定义: sub_config/switch.yaml:41
+        exec: $cache_all_noleak                 #定义: sub_config/cache.yaml:15
+      - matches:
+        - qtype 1                               #A请求
+        - switch9 'A'                           #cnfake关闭；定义: sub_config/switch.yaml:68
+        exec: $sequence_ipv4_cnfakeoff_requery  #定义: sub_config/process_v4.yaml:136
+      - matches:
+        - qtype 1                               #A请求
+        - switch9 'B'                           #cnfake开启；定义: sub_config/switch.yaml:68
+        exec: $sequence_ipv4_cnfakeon_requery   #定义: sub_config/process_v4.yaml:208
+      - matches:
+        - qtype 28                              #AAAA请求
+        - switch9 'A'                           #cnfake关闭；定义: sub_config/switch.yaml:68
+        exec: $sequence_ipv6_cnfakeoff_requery  #定义: sub_config/process_v6.yaml:140
+      - matches:
+        - qtype 28                              #AAAA请求
+        - switch9 'B'                           #cnfake开启；定义: sub_config/switch.yaml:68
+        exec: $sequence_ipv6_cnfakeon_requery   #定义: sub_config/process_v6.yaml:202
+      - matches: "!qtype 1 28"                  #处理非A、AAAA请求
+        exec: $sequence_other                   #定义: sub_config/process_ot.yaml:3
                                             #刷新分流与缓存的服务器，不记录日志，不计算tom_domains请求数
   - tag: udp_requery
     type: udp_server
@@ -225,7 +225,7 @@ plugins:
   - tag: sequence_for_stash
     type: sequence
     args:
-      - exec: try $sequence_6666                  #捕获exit动作后继续后续流程
+      - exec: try $sequence_6666                #捕获exit动作后继续后续流程
       - matches: "resp_ip 30.0.0.0/8 2400::1/64"  #如果主路由返回了国内fakeip
         exec:
           - $sequence_local
@@ -236,8 +236,8 @@ plugins:
           - tag_setter stash国外
           - exit
       - exec: tag_setter stash国内
-                  
-  - tag: udp_stash                                #给stash回家用的dns服务器
+
+  - tag: udp_stash                              #给stash回家用的dns服务器
     type: udp_server
     args:
       entry: sequence_for_stash
@@ -251,7 +251,7 @@ plugins:
       listen: ":3077"
       enable_audit: true
 
-  - tag: sequence_for_clashmi                      #给clashmi回家用的服务器
+  - tag: sequence_for_clashmi                   #给clashmi回家用的服务器
     type: sequence
     args:
       - exec: try $sequence_6666
@@ -260,15 +260,15 @@ plugins:
           - fast_mark 26
           - tag_setter clashmi国外
           - exit
-      - matches: "!resp_ip 0.0.0.0/0 2000::/3"     #给clashmi透传屏蔽的域名响应
+      - matches: "!resp_ip 0.0.0.0/0 2000::/3"  #给clashmi透传屏蔽的域名响应
         exec: exit
       - matches: "!fast_mark 26"
         exec:
           - $sequence_local_fake_clashmi
           - tag_setter clashmi国内
           - exit
-            
-  - tag: udp_clashmi                               #给clashmi回家用的dns服务器
+
+  - tag: udp_clashmi                            #给clashmi回家用的dns服务器
     type: udp_server
     args:
       entry: sequence_for_clashmi
@@ -285,7 +285,7 @@ plugins:
   - tag: sequence_for_singbox
     type: sequence
     args:
-      - exec: try $sequence_6666                  #捕获exit动作后继续后续流程
+      - exec: try $sequence_6666                #捕获exit动作后继续后续流程
       - matches: "resp_ip 30.0.0.0/8 2400::1/64"  #如果主路由返回了国内fakeip
         exec:
           - tag_setter sing-box国内
@@ -295,8 +295,8 @@ plugins:
           - tag_setter sing-box国外
           - exit
       - exec: tag_setter sing-box国内
-                  
-  - tag: udp_singbox                               #给sing-box回家用的dns服务器
+
+  - tag: udp_singbox                            #给sing-box回家用的dns服务器
     type: udp_server
     args:
       entry: sequence_for_singbox

@@ -16,10 +16,10 @@ plugins:
   - tag: sequence_google_in
     type: sequence
     args:
-      - matches: switch4 'A'
-        exec: $cache_google
+      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+        exec: $cache_google                         #定义: sub_config/cache.yaml:36
       - exec: flow_setter sequence=sequence_google_in upstream=foreign
-      - exec: $foreign
+      - exec: $foreign                              #定义: sub_config/forward_nocn.yaml:4
       - exec: cname_remover
 
 #国外
