@@ -13,9 +13,9 @@ plugins:
     type: sequence
     args:
       - exec: ecs 2408:8888::8
-      - exec: $cache_google_node
+      - exec: $cache_google_node                    #定义: sub_config/cache.yaml:44
       - exec: flow_setter sequence=sequence_google_node upstream=foreignecs
-      - exec: $foreignecs
+      - exec: $foreignecs                           #定义: sub_config/forward_nocn_ecs.yaml:4
       - exec: cname_remover
 
   - tag: udp_google_ecs

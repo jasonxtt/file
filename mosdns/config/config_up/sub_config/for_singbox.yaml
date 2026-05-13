@@ -11,9 +11,9 @@ plugins:
   - tag: sequence_sbnode
     type: sequence
     args:
-      - exec: $cache_node
+      - exec: $cache_node                           #定义: sub_config/cache.yaml:54
       - exec: sleep 1000
-      - exec: $sbnodefallback
+      - exec: $sbnodefallback                       #定义: sub_config/for_singbox.yaml:3
 ####################对外服务端口定义部分############
 #解析节点域名的服务器
   - tag: sbnode_udp

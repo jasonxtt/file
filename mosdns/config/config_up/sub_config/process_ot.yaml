@@ -3,8 +3,8 @@ plugins:
   - tag: sequence_other
     type: sequence
     args:
-      - exec: $sequence_special_ot
+      - exec: $sequence_special_ot                  #定义: sub_config/special_groups.yaml:558
       - matches: fast_mark 16
-        exec: $sequence_local          #geositecn向国内dns请求
+        exec: $sequence_local                       #geositecn向国内dns请求；定义: sub_config/forward_1.yaml:112
       - matches: "!fast_mark 16"
-        exec: $sequence_google         #!geositecn向国外dns请求
+        exec: $sequence_google                      #!geositecn向国外dns请求；定义: sub_config/forward_1.yaml:246
