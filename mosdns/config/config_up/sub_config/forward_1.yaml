@@ -1,0 +1,297 @@
+plugins:
+#使用前面定义的内部dns服务器，并定义可复用的序列，文件名中的1代表了层级
+#转发请求至sing-box/mihome dns请求fakeip
+  - tag: nocnfake
+    type: aliapi
+    args:
+      concurrent: 1
+      upstreams:
+        - addr: "udp://127.0.0.1:7874"
+
+#向mihomo请求国内的fakeip
+  - tag: cnfake
+    type: aliapi
+    args:
+      concurrent: 1
+      upstreams:
+        - addr: "udp://127.0.0.1:1053"
+
+#缓存序列-国内域名realip
+  - tag: sequence_local_exit
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_cn
+      - exec: $domestic
+      - exec: cname_remover
+      - exec: exit
+
+  - tag: sequence_local_exit_requery
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_cn
+      - exec: $domestic
+      - exec: cname_remover
+      - matches:                                   
+        - qtype 1                           #A请求
+        - "!resp_ip 0.0.0.0/0"
+        exec: $foreign
+      - matches:                                   
+        - qtype 1                           #A请求
+        - "!resp_ip 0.0.0.0/0"
+        exec: $my_nov4list
+      - matches:                                   
+        - qtype 28                          #AAAA请求
+        - "!resp_ip 2000::/3"
+        exec: $my_nov6list
+      - exec: exit
+
+#缓存序列-国内域名realip
+  - tag: sequence_local_addlist_exit
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_cn
+      - exec: $domestic
+      - exec: cname_remover
+      - matches: "!fast_mark 11" #不在记忆直连和特殊域名列表中
+        exec: $my_realiplist  #加入自生成国内域名列表
+      - exec: exit
+
+  - tag: sequence_local_addlist_exit_v6
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_cn
+      - exec: $domestic
+      - exec: cname_remover
+      - matches: "!fast_mark 11" #不在记忆直连和特殊域名列表中
+        exec: $my_realiplist  #加入自生成国内域名列表
+      - matches:                                   
+        - "!fast_mark 3"                    #不在无V6清单中
+        - "!resp_ip 2000::/3"
+        exec: $my_nov6list
+      - exec: exit
+
+  - tag: sequence_local_addlist_exit_requery
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_cn
+      - exec: $domestic
+      - exec: cname_remover
+      - matches:                                   
+        - qtype 28                          #AAAA请求
+        - "!resp_ip 2000::/3"
+        exec: $my_nov6list
+      - matches:                                   
+        - qtype 1                           #A请求
+        - "!resp_ip 0.0.0.0/0"
+        exec: fast_mark 19
+      - matches: fast_mark 19                                   
+        exec: $foreign
+      - matches:                                   
+        - qtype 1                           #A请求
+        - "!resp_ip 0.0.0.0/0"
+        exec: $my_nov4list
+      - matches:                                   
+        - fast_mark 19                      #A请求
+        - "resp_ip 0.0.0.0/0"               #有IP
+        - "!resp_ip $geoip_cn"              #但是没有cn ip
+        exec:
+          - $my_fakeiplist
+          - $my_sv4list
+          - drop_resp    
+          - $nocnfake                  
+          - exit                          
+      - matches: "!fast_mark 11" #不在记忆直连和特殊域名列表中
+        exec: $my_realiplist     #加入自生成国内域名列表
+      - exec: exit
+
+  - tag: sequence_local
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_cn
+      - exec: $domestic
+      - exec: cname_remover
+
+
+#仅加入清单并结束整个查询
+  - tag: sequence_addrealiplist_exit
+    type: sequence
+    args:
+      - matches: "!fast_mark 11" #不在记忆直连和特殊域名列表中
+        exec: $my_realiplist  #加入自生成国内域名列表
+      - exec: exit
+
+#向mihomo请求国内的fakeip序列，重新向国内dns请求
+  - tag: sequence_local_fake
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_cnmihomo
+      - matches: fast_mark 10
+        exec: $sequence_local
+      - matches: "!fast_mark 10"
+        exec: $cnfake
+      - exec: ttl 5
+
+  - tag: sequence_local_fake_clashmi
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_cnmihomo
+      - matches: fast_mark 10
+        exec: $sequence_local
+      - matches: "!fast_mark 10"
+        exec: $cnfake
+      - exec: ttl 5
+
+#向mihomo请求国内的fakeip序列并缓存
+  - tag: sequence_local_fake_pure
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_cnmihomo
+      - exec: $cnfake
+      - exec: ttl 5
+
+#向mihomo请求国内的fakeip序列、加入清单并结束
+  - tag: sequence_localfake_addlist_exit
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_cnmihomo
+      - exec: $cnfake
+      - exec: ttl 5
+      - matches: "!fast_mark 11" #不在记忆直连和特殊域名列表中
+        exec: $my_realiplist     #加入自生成国内域名列表
+      - exec: exit
+
+  - tag: sequence_localfake_addlist_exit_requery
+    type: sequence
+    args:
+      - exec: $domestic
+      - exec: cname_remover
+      - matches:                                   
+        - qtype 28                          #AAAA请求
+        - "!resp_ip 2000::/3"
+        exec: $my_nov6list
+      - matches:                                   
+        - qtype 1                           #A请求
+        - "!resp_ip 0.0.0.0/0"
+        exec: fast_mark 19
+      - matches: fast_mark 19                                   
+        exec: $foreign
+      - matches:                                   
+        - qtype 1                           #A请求
+        - "!resp_ip 0.0.0.0/0"
+        exec: $my_nov4list
+      - matches:                                   
+        - fast_mark 19                      #A请求
+        - "resp_ip 0.0.0.0/0"               #有IP
+        - "!resp_ip $geoip_cn"              #但是没有cn ip
+        exec:
+          - $my_fakeiplist
+          - $my_sv4list
+          - drop_resp    
+          - $nocnfake                  
+          - exit 
+      - exec: drop_resp
+      - matches: switch4 'A'
+        exec: $cache_cnmihomo
+      - exec: $cnfake
+      - exec: ttl 5
+      - matches: "!fast_mark 11" #不在记忆直连和特殊域名列表中
+        exec: $my_realiplist     #加入自生成国内域名列表
+      - exec: exit
+
+#向mihomo请求国内的fakeip序列并结束
+  - tag: sequence_localfake_exit
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_cnmihomo
+      - exec: $cnfake
+      - exec: ttl 5
+      - exec: exit
+
+  - tag: sequence_localfake_exit_requery
+    type: sequence
+    args:
+      - exec: $domestic
+      - exec: cname_remover
+      - matches:                                   
+        - qtype 1                           #A请求
+        - "!resp_ip 0.0.0.0/0"
+        exec: $foreign
+      - matches:                                   
+        - qtype 1                           #A请求
+        - "!resp_ip 0.0.0.0/0"
+        exec: $my_nov4list
+      - matches:                                   
+        - qtype 28                 #AAAA请求
+        - "!resp_ip 2000::/3"
+        exec: $my_nov6list
+      - exec: drop_resp
+      - matches: switch4 'A'
+        exec: $cache_cnmihomo
+      - exec: $cnfake
+      - exec: ttl 5
+      - exec: exit
+
+#缓存序列-列表外域名
+  - tag: sequence_google
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_google
+      - exec: $foreign
+      - exec: cname_remover
+
+#缓存序列-列表外域名
+  - tag: sequence_google_exit
+    type: sequence
+    args:
+      - matches: switch4 'A'
+        exec: $cache_google
+      - exec: $foreign
+      - exec: cname_remover
+      - exec: exit
+
+#请求fakeip并加入清单结束
+  - tag: sequence_fakeip_addlist_exit
+    type: sequence
+    args:
+      - exec: $nocnfake
+      - matches: "!fast_mark 12"       
+        exec: $my_fakeiplist     #加入自生成国外域名列表
+      - exec: exit
+
+#请求fakeip并结束
+  - tag: sequence_fakeip_exit
+    type: sequence
+    args:
+      - exec: $nocnfake
+      - exec: exit
+
+#国内域名 内部使用
+  - tag: sequence_local_in
+    type: sequence
+    args:
+      - exec: $sequence_local
+
+#国内
+  - tag: udp_local
+    type: udp_server
+    args:
+      entry: sequence_local_in
+      listen: ":2222"
+
+  - tag: tcp_local
+    type: tcp_server
+    args:
+      entry: sequence_local_in
+      listen: ":2222"

@@ -1,4 +1,17 @@
 plugins:
+#特殊v4域名 国内dns无解析 国外dns有解析
+  - tag: my_sv4list
+    type: domain_output
+    args:
+      target_mapper: "unified_matcher1" 
+      target_mark: 4               
+      target_tag: "特殊域名"
+      file_stat: gen/sv4list.txt
+      file_rule: gen/sv4rule.txt
+      max_entries: 10000000
+      dump_interval: 36005
+      domain_set_url: "http://127.0.0.1:9099/plugins/my_sv4rule/post"
+
 #域名排行
   - tag: top_domains
     type: domain_output

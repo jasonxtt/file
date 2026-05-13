@@ -42,6 +42,13 @@ plugins:
       files:
         - "gen/fakeiprule.txt"
 
+#特殊v4域名 国内dns无解析 国外dns有解析
+  - tag: my_sv4rule
+    type: domain_set_light
+    args:
+      files:
+        - "gen/sv4rule.txt"
+
 #生成的realip没有v6的域名规则
   - tag: my_nov6rule
     type: domain_set_light
@@ -105,7 +112,7 @@ plugins:
       files:
         - "rule/whitelist.txt"
 
-#自定义白名单域名列表
+#自定义cnfakeip排除域名列表
   - tag: cnfakeipfilter
     type: domain_set_light
     args:
@@ -156,6 +163,9 @@ plugins:
         - tag: my_nov6rule
           mark: 3 
           output_tag: "记忆无V6"
+        - tag: my_sv4rule
+          mark: 4 
+          output_tag: "特殊域名"
         - tag: adguard
           mark: 5 
           output_tag: "广告屏蔽"

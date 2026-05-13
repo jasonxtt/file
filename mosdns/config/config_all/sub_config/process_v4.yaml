@@ -1,107 +1,190 @@
+# 一、fast_mark 4为A查询时国内dns无解析但是国外dns有解析的情况，或者相反的情况，它形成的域名表仅供统计查看，在刷新分流缓存被生成的同时
+# 就已经被加入了realip、fakeip、nov4等列表。
+#
+# 二、cache、prefer这2种插件，会开启一个新的协程。如果一个序列中有cache插件，当前序列会立即结束并返回缓存结果给上一级序列（当前序列后续逻辑包括exit不会执行）；
+# 同时新开一个后台协程更新cache，后台协程会跑完后续的所有逻辑（包括exit）得到响应更新到cache中。所以当某个子序列中有cache插件时，子序列中cache
+# 后面的exit并不会如预想的那样结束掉整个查询，而是仅执行cache之前的逻辑然后回到上一级序列继续往下跑。reject、accept不会开新的协程，但是只会结束所在序列。
+#
+# 三、有几种域名没有v4 ip，不存在、纯v6域名、本区域不提供服务，前2种在第1次使用本地dns查询（或者国外dns+ecs）后，无须再向国外dns查询第2次。
+# 对于fx168这种不在大陆提供服务国内dns无法解析的域名，仅在requery时查第2次，避免大量国内纯v6域名、不存在域名进行不必要的2次查询。
+# 只有经过requery时2次查询确认没有v4 ip的域名，才加入nov4列表供平时使用。
+#
+# 四、对于明明已经存在于在线订阅列表中的域名，为什么还要加入生成的域名表？因为domain_mapper插件对于生成的full:域名，匹配速度最快
+# 效率最高，并且是1次匹配，同时获得多个fast_mark（包含订阅列表的mark）
 plugins:
 #处理A请求
-  - tag: sequence_ipv4
+#cnfake开关关闭的逻辑
+  - tag: sequence_ipv4_cnfakeoff
     type: sequence
     args:
       - exec: $sequence_special_v4
-#########################!cn fakeip filter##################################################
       - matches: fast_mark 9                               #!cn fakeip filter
-        exec: $sequence_google                             #向国外dns请求realip
-      - matches: fast_mark 9                               #!cn fakeip filter
-        exec: exit                                         #结束查询
-#########################直接发fakeip并结束##################################################
-#特殊代理部分
+        exec: $sequence_google_exit                        #向国外dns请求realip并结束
+      - matches: fast_mark 9                               #序列内含有cache插件时，子序列内exit无法结束主序列，仅能结束cache更新序列
+        exec: exit
+      - matches: fast_mark 7                               #灰名单
+        exec: $sequence_fakeip_addlist_exit                #向sing-box请求fakeip加入清单并结束，其中无cache插件，无须再次exit
+      - matches: fast_mark 8                               #白名单
+        exec: $sequence_local_addlist_exit                 #请求国内fakeip并加入国内域名列表后结束
+      - matches: fast_mark 8                              
+        exec: exit 
+      - matches: fast_mark 15                              #订阅代理补充
+        exec: $sequence_fakeip_addlist_exit                #向sing-box请求fakeip加入清单并结束
+      - matches: fast_mark 13                              #订阅直连补充
+        exec: $sequence_local_addlist_exit                 #请求国内fakeip并加入国内域名列表后结束
+      - matches: fast_mark 13                              
+        exec: exit
+      - matches: fast_mark 14                              #geosite-geolocation-!cn
+        exec: $sequence_fakeip_addlist_exit                #向sing-box请求fakeip加入清单并结束
+      - matches: fast_mark 16                              #订阅直连
+        exec: $sequence_local_addlist_exit                 #请求国内fakeip并加入国内域名列表后结束
+      - matches: fast_mark 16                              
+        exec: exit
       - matches: fast_mark 12                              #记忆代理
-        exec: flow_setter sequence=sequence_ipv4 upstream=nocnfake
-      - matches: fast_mark 12                              #记忆代理
-        exec: $nocnfake                                    #请求国外fakeip
-      - matches: fast_mark 12                              #记忆代理
-        exec: exit                                         #结束查询
-#特殊直连部分
-      - matches:                                           #直连域名fakeip请求上游
-        - "fast_mark 11"                                   #记忆直连
-        - "!fast_mark 10"                                  #不在CN FakeIP Filter中
-        - switch9 'B'                                      #CN FakeIP
-        exec: $sequence_local_fake_pure                    #单纯请求国内fakeip
-      - matches:                                           #直连域名fakeip请求上游
-        - "fast_mark 11"                                   #记忆直连
-        - "fast_mark 10"                                   #在CN FakeIP Filter中
-        - switch9 'B'                                      #CN FakeIP
-        exec: $sequence_local                              #单纯请求国内fakeip
-      - matches:                                           #直连域名fakeip请求上游
-        - "fast_mark 11"                                   #记忆直连
-        - switch9 'B'                                      #CN FakeIP
-        exec: exit                                         #结束查询
-#逐步把所有域名加入到记忆代理清单
-      - matches: fast_mark 7 15                            #灰名单、订阅代理补充
-        exec: flow_setter sequence=sequence_ipv4 upstream=nocnfake
-      - matches: fast_mark 7 15                            #灰名单、订阅代理补充
-        exec: $nocnfake                                    #请求国外fakeip
-      - matches: fast_mark 7 15                            #灰名单、订阅代理补充
-        exec: $sequence_fakeip_addlist                     #向sing-box请求fakeip加入清单并结束
-#逐步把所有域名加入到记忆直连清单
-      - matches:                                           #直连域名fakeip请求上游
-        - "fast_mark 8 13"                                 #白名单、订阅直连补充
-        - "!fast_mark 10"                                  #不在CN FakeIP Filter中
-        - switch9 'B'                                      #CN FakeIP
-        exec: $sequence_local_fake_pure                    #单纯请求国内fakeip
-      - matches:                                           #直连域名fakeip结束查询
-        - "!fast_mark 11"                                  #不在记忆直连列表中
-        - "fast_mark 8 13"                                 #白名单、订阅直连补充
-        - "!fast_mark 10"                                  #不在CN FakeIP Filter中
-        - switch9 'B'                                      #CN FakeIP
-        exec: $my_realiplist                               #加入自生成国内域名列表
-      - matches:                                           #直连域名fakeip结束查询
-        - "fast_mark 8 13"                                 #白名单、订阅直连补充
-        - "!fast_mark 10"                                  #不在CN FakeIP Filter中
-        - switch9 'B'                                      #CN FakeIP
-        exec: exit                                         #结束查询
-#########################需要进一步判断生成域名表##############################################         
-      - matches: fast_mark 8 10 11 13 16                   #白名单、CN Fake IP Filter、记忆直连、订阅直连补充、订阅直连
-        exec: $sequence_local                              #先用国内dns查询后再进一步处理
-      - matches:   
-        - "!fast_mark 11"                                  #域名不在生成国内域名列表中                                        
-        - "fast_mark 8 10 13 16"                           #白名单、CN Fake IP Filter、订阅直连补充、订阅直连
-        - "rcode 0"                                        #上游查询成功
-        - "resp_ip 0.0.0.0/0"                              #有V4 IP
-        exec: fast_mark 19                                 #做出标记
-      - matches: fast_mark 19
-        exec: $my_realiplist                               #加入自生成国内域名列表
-      - matches:                                           #CN Fake IP Filter且有ip
-        - fast_mark 11 19
-        - fast_mark 10
-        exec: exit                                         #直接采用前一步国内dns的realip并结束
-      - matches:                                           #开启cntomihomo开关后国内域名向mihomo请求fakeip
-        - fast_mark 11 19                                  #以前判断为记忆直连与本次判断为记忆直连
-        - switch9 'B'
-        exec: $sequence_local_fake_pure                    #单纯请求国内fakeip
-      - matches: fast_mark 11 19                           #未开启cntokfakeip开关的情况则接受上游返回的realip
-        exec: exit                                         #有IP的情况结束整个流程
-      - matches:
-        - "fast_mark 14"                                   #geosite-geolocation-!cn                            
-        - "!fast_mark 8 10 11 13 16"                       #直连域名
-        exec: $sequence_fakeip_addlist                     #geosite-geolocation-!cn向sing-box请求fakeip加入清单并结束
-#########################列表外域名处理############################################## 
-##先查找IP判断国内国外分流
-      - matches:
-        - "!fast_mark 7 8 9 10 11 12 13 14 15 16"          #列表外域名
-        - switch3 'A'                                      #兼容模式处理列表外域名                           
+        exec: $sequence_fakeip_exit                        #请求国外fakeip并结束
+      - matches: fast_mark 11                              #记忆直连
+        exec: $sequence_local_exit                         #请求国内fakeip并结束   
+      - matches: fast_mark 11                              
+        exec: exit
+#列表外域名处理，后面默认都是fast_mark 17的逻辑
+##先向上游请求真实的dns响应
+      - matches: switch3 'A'                               #兼容模式
         exec: $sequence_local                              #表外域名先发到国内查第1次
-      - matches:
-        - "!fast_mark 7 8 9 10 11 12 13 14 15 16"          #列表外域名
-        - switch3 'B'                                      #安全模式处理列表外域名   
+      - matches: switch3 'B'                               #安全模式  
         exec: $sequence_google_node                        #表外域名先带ecs发到8888查第1次
       - matches:
-        - "!fast_mark 7 8 9 10 11 12 13 14 15 16"          #列表外域名
-        - "!resp_ip 0.0.0.0/0"                             #不管是安全模式还是兼容模式，还没有IP                                 
-        exec: $sequence_google                             #google dns不带ecs查第2次
-      - matches:
-        - "!fast_mark 7 8 9 10 11 12 13 14 15 16"          #列表外域名
         - switch3 'B'                                      #安全模式
         - "!resp_ip 0.0.0.0/0"                             #还是没有IP                                 
-        exec: $sequence_local                              #安全模式国内dns查第3次
-      - matches: fast_mark 7 8 9 10 11 12 13 14 15 16      #列表内无IP的情况
-        exec: $sequence_google                             #google dns不带ecs查第2次
+        exec: $sequence_local                              #安全模式国内dns查第2次
+##有ip响应的，对比直连IP与geoipcn后再处理
+      - matches: "resp_ip $direct_ip"                      #dns响应含有指定直连的IP
+        exec: $sequence_addrealiplist_exit                 #请求国内realip并加入国内域名列表后结束
+      - matches: "resp_ip $geoip_cn"                       #标记列表外域名上游dns获取了!cn ip   
+        exec: $sequence_addrealiplist_exit                 #请求国内realip并加入国内域名列表后结束
+      - matches: "resp_ip 0.0.0.0/0"                       #存在非cn ip
+        exec: $sequence_fakeip_addlist_exit                
+#还没有v4 ip，可能是国内纯v6或者fx168，fx168类型域名经过统计，家用2万个中才存在5个，属于极小概率事件。
+#纯v6域名应该在这里结束查询返回上游的空响应，在requery时加入nov4列表，requery分流好之后，属于表内域名，不会再漏到这里了
+#fx168在这里暂时接受空响应，在requery时再分流，requery分流好之后，fx168就属于表内域名，不会再漏到这里了。
+#mosdns仅在requery执行时（30分钟以内）属于空窗期，在此期间，fx168类型的域名不能访问，纯v6域名不在nov4列表。
+
+#cnfake开关打开的逻辑
+  - tag: sequence_ipv4_cnfakeon
+    type: sequence
+    args:
+      - exec: $sequence_special_v4
+      - matches: fast_mark 9                               #!cn fakeip filter
+        exec: $sequence_google_exit                        #向国外dns请求realip并结束
+      - matches: fast_mark 9                              
+        exec: exit 
+      - matches: fast_mark 10                              #cn fakeip filter
+        exec: $sequence_local_exit                         #单纯请求国内realip并结束
+      - matches: fast_mark 10                              
+        exec: exit
+      - matches: fast_mark 7                               #灰名单
+        exec: $sequence_fakeip_addlist_exit                #向sing-box请求fakeip加入清单并结束
+      - matches: fast_mark 8                               #白名单
+        exec: $sequence_localfake_addlist_exit             #请求国内fakeip并加入国内域名列表后结束  
+      - matches: fast_mark 8                              
+        exec: exit
+      - matches: fast_mark 15                              #订阅代理补充
+        exec: $sequence_fakeip_addlist_exit                #向sing-box请求fakeip加入清单并结束
+      - matches: fast_mark 13                              #订阅直连补充
+        exec: $sequence_localfake_addlist_exit             #请求国内fakeip并加入国内域名列表后结束
+      - matches: fast_mark 13                              
+        exec: exit
+      - matches: fast_mark 14                              #geosite-geolocation-!cn
+        exec: $sequence_fakeip_addlist_exit                #向sing-box请求fakeip加入清单并结束
+      - matches: fast_mark 16                              #订阅直连
+        exec: $sequence_localfake_addlist_exit             #请求国内fakeip并加入国内域名列表后结束
+      - matches: fast_mark 16                              
+        exec: exit
+      - matches: fast_mark 12                              #记忆代理
+        exec: $sequence_fakeip_exit                        #请求国外fakeip并结束
+      - matches: fast_mark 11                              #记忆直连
+        exec: $sequence_localfake_exit                     #请求国内fakeip并结束  
+      - matches: fast_mark 11                              
+        exec: exit
+#列表外域名处理，后面默认都是fast_mark 17的逻辑
+##先向上游请求真实的dns响应
+      - matches: switch3 'A'                               #兼容模式
+        exec: $sequence_local                              #表外域名先发到国内查第1次
+      - matches: switch3 'B'                               #安全模式  
+        exec: $sequence_google_node                        #表外域名先带ecs发到8888查第1次
+      - matches:
+        - switch3 'B'                                      #安全模式
+        - "!resp_ip 0.0.0.0/0"                             #还是没有IP                                 
+        exec: $sequence_local                              #安全模式国内dns查第2次
+##有ip响应的，对比直连IP与geoipcn后再处理
+      - matches: "resp_ip $direct_ip"                      #dns响应含有指定直连的IP
+        exec: fast_mark 21 
+      - matches: fast_mark 21
+        exec: $sequence_localfake_addlist_exit             #请求国内fakeip并加入国内域名列表后结束
+      - matches: fast_mark 21
+        exec: exit                               
+      - matches: "resp_ip $geoip_cn"                       #标记列表外域名上游dns获取了!cn ip   
+        exec: fast_mark 21  
+      - matches: fast_mark 21
+        exec: $sequence_localfake_addlist_exit             #请求国内fakeip并加入国内域名列表后结束
+      - matches: fast_mark 21
+        exec: exit
+      - matches: "resp_ip 0.0.0.0/0"                       #存在非cn ip
+        exec: $sequence_fakeip_addlist_exit                
+
+#刷新分流缓存时使用
+#cnfake开关关闭的逻辑
+  - tag: sequence_ipv4_cnfakeoff_requery
+    type: sequence
+    args:
+      - exec: $sequence_special_v4
+      - matches: fast_mark 9                               #!cn fakeip filter
+        exec: $sequence_google_exit                        #向国外dns请求realip并结束
+      - matches: fast_mark 9                              
+        exec: exit 
+      - matches: fast_mark 7                               #灰名单
+        exec: $sequence_fakeip_addlist_exit                #向sing-box请求fakeip加入清单并结束
+      - matches: fast_mark 8                               #白名单
+        exec: $sequence_local_addlist_exit_requery         #请求国内fakeip并加入国内域名列表后结束  
+      - matches: fast_mark 8                              
+        exec: exit
+      - matches: fast_mark 15                              #订阅代理补充
+        exec: $sequence_fakeip_addlist_exit                #向sing-box请求fakeip加入清单并结束
+      - matches: fast_mark 13                              #订阅直连补充
+        exec: $sequence_local_addlist_exit_requery         #请求国内fakeip并加入国内域名列表后结束
+      - matches: fast_mark 13                              
+        exec: exit
+      - matches: fast_mark 14                              #geosite-geolocation-!cn
+        exec: $sequence_fakeip_addlist_exit                #向sing-box请求fakeip加入清单并结束
+      - matches: fast_mark 16                              #订阅直连
+        exec: $sequence_local_addlist_exit_requery         #请求国内fakeip并加入国内域名列表后结束
+      - matches: fast_mark 16                              
+        exec: exit
+      - matches: fast_mark 12                              #记忆代理
+        exec: $sequence_fakeip_exit                        #请求国外fakeip并结束
+      - matches: fast_mark 11                              #记忆直连
+        exec: $sequence_local_exit_requery                 #请求国内fakeip并结束  
+      - matches: fast_mark 11                              
+        exec: exit
+#列表外域名处理，后面默认都是fast_mark 17的逻辑
+##先向上游请求真实的dns响应
+      - matches: switch3 'A'                               #兼容模式
+        exec: $sequence_local                              #表外域名先发到国内查第1次
+      - matches: switch3 'B'                               #安全模式  
+        exec: $sequence_google_node                        #表外域名先带ecs发到8888查第1次
+      - matches: "!resp_ip 0.0.0.0/0"                      #国内dns/国外dns+ecs无IP的情况
+        exec: fast_mark 4                                  #做出标记
+      - matches:
+        - switch3 'B'                                      #安全模式
+        - "!resp_ip 0.0.0.0/0"                             #还是没有IP                                 
+        exec: $sequence_local                              #安全模式国内dns查第2次
+###仅在requery时，才进行第2次查询，用于为fx168这种特殊情况进行分流，仅在requery时生成nov4列表
+      - matches: "!resp_ip 0.0.0.0/0"                      #国内dns/国外dns+ecs无IP的情况
+        exec: $sequence_google                             #requery再查
+##再根据响应找出确实无IP的域名
+      - matches:
+        - fast_mark 4
+        - "resp_ip 0.0.0.0/0"                              #国内dns/国外dns+ecs无IP的情况
+        exec: $my_sv4list                                  #生成sv4列表供查阅，后面会加入其它列表中
       - matches:
         - "rcode 0 3"
         - "!resp_ip 0.0.0.0/0"
@@ -113,25 +196,95 @@ plugins:
           - reject 0                                       #此处仅跳出当前exec隐藏子序列并设置rcode
       - matches: fast_mark 20
         exec: exit                                         #跳出所有处理逻辑结束处理
-##列表外域名根据获取的IP分流 
-      - matches: "resp_ip $direct_ip"            
-        exec: fast_mark 24                                 #标记上游dns返回了直连ip列表中的ip
-      - matches: fast_mark 24
-        exec: $my_realiplist                               #把此域名加入自生成国内域名列表
-      - matches:                                           #开启cntomihomo开关后国内域名向mihomo请求fakeip
-        - fast_mark 24
-        - switch9 'B'
-        exec: $sequence_local_fake_pure                    #单纯请求国内fakeip
-      - matches: fast_mark 24                              #上游dns返回了自定义直连ip列表中的ip，结束流程
-        exec: exit                                         #结束整个序列
-      - matches: "!resp_ip $geoip_cn"                      #标记列表外域名上游dns获取了!cn ip
-        exec: fast_mark 25
-      - matches: fast_mark 25                              #向sing-box请求fakeip并加入自生成国外域名列表
-        exec: $sequence_fakeip_addlist
-      - matches: "!fast_mark 25"
-        exec: $my_realiplist                               #如果获取了cn ip，则加入自生成国内域名列表
-      - matches:                                           #开启cntomihomo开关后国内域名向mihomo请求fakeip，否则接受上游ip
-        - "!fast_mark 25"                             
-        - switch9 'B'
-        exec: $sequence_local_fake_pure                    #单纯请求国内fakeip
+##有ip响应的，对比直连IP与geoipcn后再处理
+      - matches: "resp_ip $direct_ip"                      #dns响应含有指定直连的IP
+        exec: $sequence_addrealiplist_exit                 #请求国内realip并加入国内域名列表后结束
+      - matches: "resp_ip $geoip_cn"                       #标记列表外域名上游dns获取了!cn ip   
+        exec: $sequence_addrealiplist_exit                 #请求国内realip并加入国内域名列表后结束
+      - matches: "resp_ip 0.0.0.0/0"                       #存在非cn ip
+        exec: $sequence_fakeip_addlist_exit               
+
+#cnfake开关打开的逻辑
+  - tag: sequence_ipv4_cnfakeon_requery
+    type: sequence
+    args:
+      - exec: $sequence_special_v4
+      - matches: fast_mark 9                               #!cn fakeip filter
+        exec: $sequence_google_exit                        #向国外dns请求realip并结束
+      - matches: fast_mark 9                              
+        exec: exit
+      - matches: fast_mark 10                              #cn fakeip filter
+        exec: $sequence_local_exit_requery                 #单纯请求国内realip并结束
+      - matches: fast_mark 10                              
+        exec: exit
+      - matches: fast_mark 7                               #灰名单
+        exec: $sequence_fakeip_addlist_exit                #向sing-box请求fakeip加入清单并结束
+      - matches: fast_mark 8                               #白名单
+        exec: $sequence_localfake_addlist_exit_requery     #请求国内fakeip并加入国内域名列表后结束   
+      - matches: fast_mark 8                              
+        exec: exit
+      - matches: fast_mark 15                              #订阅代理补充
+        exec: $sequence_fakeip_addlist_exit                #向sing-box请求fakeip加入清单并结束
+      - matches: fast_mark 13                              #订阅直连补充
+        exec: $sequence_localfake_addlist_exit_requery     #请求国内fakeip并加入国内域名列表后结束
+      - matches: fast_mark 13                              
+        exec: exit
+      - matches: fast_mark 14                              #geosite-geolocation-!cn
+        exec: $sequence_fakeip_addlist_exit                #向sing-box请求fakeip加入清单并结束
+      - matches: fast_mark 16                              #订阅直连
+        exec: $sequence_localfake_addlist_exit_requery     #请求国内fakeip并加入国内域名列表后结束
+      - matches: fast_mark 16                              
+        exec: exit
+      - matches: fast_mark 12                              #记忆代理
+        exec: $sequence_fakeip_exit                        #请求国外fakeip并结束
+      - matches: fast_mark 11                              #记忆直连
+        exec: $sequence_localfake_exit_requery             #请求国内fakeip并结束 
+      - matches: fast_mark 11                              
+        exec: exit
+#列表外域名处理，后面默认都是fast_mark 17的逻辑
+##先向上游请求真实的dns响应
+      - matches: switch3 'A'                               #兼容模式
+        exec: $sequence_local                              #表外域名先发到国内查第1次
+      - matches: switch3 'B'                               #安全模式  
+        exec: $sequence_google_node                        #表外域名先带ecs发到8888查第1次
+      - matches: "!resp_ip 0.0.0.0/0"                      #国内dns/国外dns+ecs无IP的情况
+        exec: fast_mark 4                                  #做出标记
+      - matches:
+        - switch3 'B'                                      #安全模式
+        - "!resp_ip 0.0.0.0/0"                             #还是没有IP                                 
+        exec: $sequence_local                              #安全模式国内dns查第2次
+      - matches: "!resp_ip 0.0.0.0/0"                      #国内dns/国外dns+ecs无IP的情况
+        exec: $sequence_google                             #requery再查
+##再根据响应找出确实无IP的域名
+      - matches:
+        - fast_mark 4
+        - "resp_ip 0.0.0.0/0"                              #国内dns/国外dns+ecs无IP的情况
+        exec: $my_sv4list                                  #生成sv4列表
+      - matches:
+        - "rcode 0 3"
+        - "!resp_ip 0.0.0.0/0"
+        exec: fast_mark 20                                 #做出标记
+      - matches: fast_mark 20                              #上游dns未返回ip
+        exec:
+          - $my_nov4list                                   #加入自生成无v4域名清单
+          - drop_resp                                      #避免cname传递
+          - reject 0                                       #此处仅跳出当前exec隐藏子序列并设置rcode
+      - matches: fast_mark 20
+        exec: exit                                         #跳出所有处理逻辑结束处理
+##有ip响应的，对比直连IP与geoipcn后再处理
+      - matches: "resp_ip $direct_ip"                      #dns响应含有指定直连的IP
+        exec: fast_mark 21 
+      - matches: fast_mark 21
+        exec: $sequence_localfake_addlist_exit             #请求国内fakeip并加入国内域名列表后结束
+      - matches: fast_mark 21
+        exec: exit                               
+      - matches: "resp_ip $geoip_cn"                       #标记列表外域名上游dns获取了!cn ip   
+        exec: fast_mark 21  
+      - matches: fast_mark 21
+        exec: $sequence_localfake_addlist_exit             #请求国内fakeip并加入国内域名列表后结束
+      - matches: fast_mark 21
+        exec: exit
+      - matches: "resp_ip 0.0.0.0/0"                       #存在非cn ip
+        exec: $sequence_fakeip_addlist_exit               
+
 
