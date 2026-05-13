@@ -29,8 +29,7 @@ plugins:
   - tag: sequence_6666
     type: sequence
     args:
-      - matches: switch11 'A'               #rewrite开关
-        exec: $rewrite                      #匹配成功重定向后直接结束不执行后续流程
+      - exec: $rewrite                      #匹配成功重定向后直接结束不执行后续流程
       - matches:                            #阻止SOA PTR HTTPS类型的dns查询
         - "qtype 6 12 65"
         - switch5 'A'
@@ -92,12 +91,25 @@ plugins:
         - switch13 'A'                      #缓存开关打开
         exec: $cache_all_noleak
       - exec: $top_domains
-      - matches: qtype 1                    #处理A请求
-        exec: $sequence_ipv4
-      - matches: qtype 28                   #处理AAAA请求
-        exec: $sequence_ipv6
+      - matches:                                   
+        - qtype 1                           #A请求
+        - switch9 'A'                       #cnfake关闭
+        exec: $sequence_ipv4_cnfakeoff
+      - matches:                                   
+        - qtype 1                           #A请求
+        - switch9 'B'                       #cnfake开启
+        exec: $sequence_ipv4_cnfakeon
+      - matches:                                   
+        - qtype 28                          #AAAA请求
+        - switch9 'A'                       #cnfake关闭
+        exec: $sequence_ipv6_cnfakeoff
+      - matches:                                   
+        - qtype 28                          #AAAA请求
+        - switch9 'B'                       #cnfake开启
+        exec: $sequence_ipv6_cnfakeon
       - matches: "!qtype 1 28"              #处理非A、AAAA请求
         exec: $sequence_other
+
 
 #对外服务器
   - tag: udp_all
@@ -118,6 +130,7 @@ plugins:
   - tag: sequence_requery
     type: sequence
     args:
+      - exec: $rewrite   
       - matches:                            #阻止SOA PTR HTTPS类型的dns查询
         - "qtype 6 12 65"
         - switch5 'A'
@@ -178,12 +191,22 @@ plugins:
         - switch3 'B'                       #非泄露模式
         - switch13 'A'                      #缓存开关打开
         exec: $cache_all_noleak
-      - matches: switch11 'A'               #rewrite开关
-        exec: $rewrite                      #匹配成功重定向后直接结束不执行后续流程
-      - matches: qtype 1                    #处理A请求
-        exec: $sequence_ipv4
-      - matches: qtype 28                   #处理AAAA请求
-        exec: $sequence_ipv6
+      - matches:                                   
+        - qtype 1                           #A请求
+        - switch9 'A'                       #cnfake关闭
+        exec: $sequence_ipv4_cnfakeoff_requery
+      - matches:                                   
+        - qtype 1                           #A请求
+        - switch9 'B'                       #cnfake开启
+        exec: $sequence_ipv4_cnfakeon_requery
+      - matches:                                   
+        - qtype 28                          #AAAA请求
+        - switch9 'A'                       #cnfake关闭
+        exec: $sequence_ipv6_cnfakeoff_requery
+      - matches:                                   
+        - qtype 28                          #AAAA请求
+        - switch9 'B'                       #cnfake开启
+        exec: $sequence_ipv6_cnfakeon_requery
       - matches: "!qtype 1 28"              #处理非A、AAAA请求
         exec: $sequence_other
                                             #刷新分流与缓存的服务器，不记录日志，不计算tom_domains请求数
