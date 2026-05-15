@@ -28,6 +28,16 @@ plugins:
         exec: $sequence_local_addlist_exit          #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:51
       - matches: fast_mark 8
         exec: exit
+      - matches:
+        - fast_mark 4                                      #特殊域名
+        - fast_mark 12                                     #记忆代理   
+        exec: $sequence_fakeip_exit                        #请求国外fakeip并结束
+      - matches:
+        - fast_mark 4                                      #特殊域名
+        - fast_mark 11                                     #记忆代理   
+        exec: $sequence_local_exit                         #请求国内realip并结束
+      - matches: fast_mark 4                              
+        exec: exit
       - matches: fast_mark 15                       #订阅代理补充
         exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
       - matches: fast_mark 13                       #订阅直连补充
@@ -86,6 +96,16 @@ plugins:
       - matches: fast_mark 8                        #白名单
         exec: $sequence_localfake_addlist_exit      #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:162
       - matches: fast_mark 8
+        exec: exit
+      - matches:
+        - fast_mark 4                                      #特殊域名
+        - fast_mark 12                                     #记忆代理   
+        exec: $sequence_fakeip_exit                        #请求国外fakeip并结束
+      - matches:
+        - fast_mark 4                                      #特殊域名
+        - fast_mark 11                                     #记忆代理   
+        exec: $sequence_local_exit                         #请求国内realip并结束
+      - matches: fast_mark 4                              
         exec: exit
       - matches: fast_mark 15                       #订阅代理补充
         exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
