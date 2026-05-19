@@ -1,0 +1,13 @@
+[
+  {
+    "name": "cuscn",
+    "type": "cuscn",
+    "files": "srs/geosite-geolocation-!cn@cn.srs",
+    "url": "https://raw.githubusercontent.com/nekolsd/sing-geosite/refs/heads/rule-set/geolocation-!cn%40cn.srs",
+    "enabled": true,
+    "auto_update": false,
+    "update_interval_hours": 24,
+    "rule_count": 1105,
+    "last_updated": "2026-05-08T08:15:37.738215894+08:00"
+  }
+]

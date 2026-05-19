@@ -1,0 +1,12 @@
+plugins:
+# 由 special_groups API 自动生成。不要手动编辑。
+  - tag: special_upstream_matcher
+    type: domain_mapper
+    args:
+      default_mark: 0
+      default_tag: ""
+      rules: []
+
+  - tag: sequence_special_all
+    type: sequence
+    args: []

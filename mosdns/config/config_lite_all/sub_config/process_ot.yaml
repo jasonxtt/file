@@ -1,0 +1,20 @@
+plugins:
+#处理非A、AAAA请求
+  - tag: sequence_other
+    type: sequence
+    args:
+      - exec: $sequence_special_all
+      - matches: fast_mark 8                               #白名单
+        exec: $sequence_local
+      - matches: fast_mark 8
+        exec: exit
+      - matches: fast_mark 7 14 15                         #"灰名单""订阅代理""订阅代理补充"
+        exec: $sequence_google
+      - matches: fast_mark 7 14 15
+        exec: exit
+      - matches: fast_mark 13 16                        #"订阅直连补充""订阅直连"
+        exec: $sequence_local
+      - matches: fast_mark 13 16
+        exec: exit
+      - matches: "!fast_mark 8 13 16"                  #其它域名默认国外
+        exec: $sequence_google

@@ -1,0 +1,10 @@
+{
+  "light": {
+    "mode": "custom",
+    "color": "#057a48"
+  },
+  "dark": {
+    "mode": "custom",
+    "color": "#3a8a05"
+  }
+}

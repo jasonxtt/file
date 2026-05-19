@@ -1,0 +1,13 @@
+[
+  {
+    "name": "geosite_cn",
+    "type": "geositecn",
+    "files": "srs/geosite-cn.srs",
+    "url": "https://github.com/MetaCubeX/meta-rules-dat/raw/sing/geo/geosite/cn.srs",
+    "enabled": true,
+    "auto_update": false,
+    "update_interval_hours": 24,
+    "rule_count": 114416,
+    "last_updated": "2026-05-08T08:15:38.103148249+08:00"
+  }
+]

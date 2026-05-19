@@ -1,0 +1,43 @@
+plugins:
+#专门用于解析域名节点，默认使用 8888 解析，5 毫秒不通用换 223 解析
+  - tag: sbnodefallback
+    type: fallback
+    args:
+      primary: sequence_google_ecs
+      secondary: sequence_local
+      threshold: 5
+      always_standby: false
+
+  - tag: sequence_sbnode
+    type: sequence
+    args:
+      - exec: $cache_node
+      - exec: sleep 1000
+      - exec: $sbnodefallback
+
+####################对外服务端口定义部分############
+#解析节点域名的服务器
+  - tag: sbnode_udp
+    type: udp_server
+    args:
+      entry: sequence_sbnode
+      listen: ":7777"
+
+  - tag: sbnode_tcp
+    type: tcp_server
+    args:
+      entry: sequence_sbnode
+      listen: ":7777"
+
+#sing-box使用的服务器
+  - tag: sb_udp
+    type: udp_server
+    args:
+      entry: sequence_local
+      listen: ":8888"
+
+  - tag: sb_tcp
+    type: tcp_server
+    args:
+      entry: sequence_local
+      listen: ":8888"
