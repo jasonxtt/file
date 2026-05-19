@@ -1,0 +1,140 @@
+plugins:
+#列表外域名解析IP为此列表中IP，归入直连
+  - tag: direct_ip
+    type: ip_set
+    args:
+      files:
+        - "rule/direct_ip.txt"
+
+#重定向
+  - tag: rewrite
+    type: rewrite
+    args:
+      files:
+        - "rule/rewrite.txt"
+      dns: 127.0.0.1:2222
+
+#自定义国外域名列表
+  - tag: cusnocn
+    type: sd_set_light
+    args:
+      socks5: ""
+      local_config: "srs/cusnocn.json"
+
+#自定义国内域名列表
+  - tag: cuscn
+    type: sd_set_light
+    args:
+      socks5: ""
+      local_config: "srs/cuscn.json"
+
+#中国域名列表
+  - tag: geosite_cn
+    type: sd_set_light
+    args:
+      socks5: ""
+      local_config: "srs/geositecn.json"
+
+#中国IP列表
+  - tag: geoip_cn
+    type: si_set
+    args:
+      socks5: ""
+      local_config: "srs/geoipcn.json"
+
+#需要代理的客户端IP列表
+  - tag: client_ip
+    type: ip_set
+    args:
+      files:
+        - "rule/client_ip.txt"
+
+#国外域名列表
+  - tag: geosite_no_cn
+    type: sd_set_light
+    args:
+      socks5: ""
+      local_config: "srs/geositenocn.json"
+
+#自定义白名单域名列表
+  - tag: whitelist
+    type: domain_set_light
+    args:
+      files:
+        - "rule/whitelist.txt"
+
+#国内 fakeip 过滤列表
+  #- tag: cnfakeipfilter
+    #type: domain_set_light
+    #args:
+      #files:
+        #- "rule/cnfakeipfilter.txt"
+
+#屏蔽域名列表
+  - tag: blocklist
+    type: domain_set_light
+    args:
+      files:
+        - "rule/blocklist.txt"
+
+#!CN fakeip filter 列表
+  - tag: realiplist
+    type: domain_set_light
+    args:
+      files:
+        - "rule/realiplist.txt"
+
+#自定义强制代理域名列表
+  - tag: greylist
+    type: domain_set_light
+    args:
+      files:
+        - "rule/greylist.txt"
+
+#ddns域名列表
+  - tag: ddnslist
+    type: domain_set_light
+    args:
+      files:
+        - "rule/ddnslist.txt"
+
+#统一域名匹配,设置fast_mark和域名输出tag，屏蔽部分
+  - tag: unified_matcher1
+    type: domain_mapper
+    args:
+      default_mark: 17
+      default_tag: "未命中"
+      rules:
+        - tag: blocklist
+          mark: 1
+          output_tag: "黑名单"
+        - tag: adguard
+          mark: 5
+          output_tag: "广告屏蔽"
+        - tag: ddnslist
+          mark: 6
+          output_tag: "DDNS域名"
+        - tag: greylist
+          mark: 7
+          output_tag: "灰名单"
+        - tag: whitelist
+          mark: 8
+          output_tag: "白名单"
+        - tag: realiplist
+          mark: 9
+          output_tag: "!CN fakeip filter"
+        #- tag: cnfakeipfilter
+        #  mark: 10
+        #  output_tag: "CN fakeip filter"
+        - tag: cuscn
+          mark: 13
+          output_tag: "订阅直连补充"
+        - tag: geosite_no_cn
+          mark: 14
+          output_tag: "订阅代理"
+        - tag: cusnocn
+          mark: 15
+          output_tag: "订阅代理补充"
+        - tag: geosite_cn
+          mark: 16
+          output_tag: "订阅直连"

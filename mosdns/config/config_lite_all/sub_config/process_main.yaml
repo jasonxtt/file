@@ -1,0 +1,89 @@
+plugins:
+#处理A请求
+  - tag: sequence_main
+    type: sequence
+    args:
+#################特殊分流组规则#################
+      - exec: $sequence_special_all                 
+#################灰名单规则#################
+      - matches: fast_mark 7                          #灰名单
+        exec: $sequence_fakeip
+      - matches: fast_mark 7
+        exec: exit
+#########################白名单规则#######################################################
+      - matches: fast_mark 8                               #白名单
+        exec: $sequence_local
+      - matches: 
+        - "fast_mark 8"
+        - "resp_ip 0.0.0.0/0 2000::/3"
+        exec: exit                  #存在rcord记录则停止
+      - matches:
+        - "fast_mark 8"
+        - "rcode 3"
+        exec: $sequence_google_in      #仅 NXDOMAIN 时向 google 再次查询
+      - matches: fast_mark 8
+        exec: exit
+#########################显式代理规则#######################################################
+      - matches: fast_mark 14 15                         #订阅代理、订阅代理补充
+        exec: $sequence_fakeip
+#########################显式直连规则#######################################################
+      - matches: fast_mark 13 16                               #订阅直连补充、订阅直连                  
+        exec: $sequence_local
+      - matches: 
+        - "fast_mark 13 16"
+        - "resp_ip 0.0.0.0/0 2000::/3"
+        exec: exit               #存在rcord记录则停止
+      - matches:
+        - "fast_mark 13 16"
+        - "rcode 3"
+        exec: $sequence_google_in      #仅 NXDOMAIN 时向 google 再次查询
+      - matches: fast_mark 13 16
+        exec: exit
+#########################列表外域名处理#####################################################
+      - matches:
+        - "!fast_mark 7 8 9 13 14 15 16"               #列表外域名
+        - switch3 'A'                                      #兼容模式
+        exec: $sequence_local
+      - matches:
+        - "!fast_mark 7 8 9 13 14 15 16"               #列表外域名
+        - switch3 'A'
+        - "rcode 2 5"
+        - "!resp_ip 0.0.0.0/0"
+        - "!resp_ip 2000::/3"
+        exec: $sequence_google_in
+      - matches:
+        - "!fast_mark 7 8 9 13 14 15 16"               #列表外域名
+        - switch3 'B'                                      #安全模式
+        exec: $sequence_google_in
+      - matches:
+        - "!fast_mark 7 8 9 13 14 15 16"
+        - switch3 'B'
+        - "!resp_ip 0.0.0.0/0"
+        - "!resp_ip 2000::/3"
+        exec: $sequence_local
+      - matches:
+        - "rcode 3"
+        - "!resp_ip 0.0.0.0/0"
+        - "!resp_ip 2000::/3"
+        exec: exit
+      - matches:
+        - "rcode 0"
+        - "!resp_ip 0.0.0.0/0"
+        - "!resp_ip 2000::/3"
+        exec: exit
+      - matches:
+        - "rcode 2 5"
+        - "!resp_ip 0.0.0.0/0"
+        - "!resp_ip 2000::/3"
+        exec: exit
+##列表外域名根据获取的IP分流
+      - matches: "resp_ip $direct_ip"
+        exec: fast_mark 24                                 #命中自定义直连 IP
+      - matches: fast_mark 24
+        exec: exit
+      - matches: "!resp_ip $geoip_cn"                     #获取到 !cn IP
+        exec: fast_mark 25
+      - matches: fast_mark 25
+        exec: $sequence_fakeip
+      - matches: "!fast_mark 25"
+        exec: exit

@@ -1,0 +1,16 @@
+{
+  "socks5": "10.0.0.2:7890",
+  "ecs": "2408::1",
+  "replacements": [
+    {
+      "original": "114.114.114.114",
+      "new": "114.114.114.114",
+      "comment": "运营商dns"
+    },
+    {
+      "original": "qtype 6 12 65",
+      "new": "qtype 6 12 35 65",
+      "comment": "屏蔽类型"
+    }
+  ]
+}
