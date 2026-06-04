@@ -70,6 +70,12 @@ plugins:
     args:
       initial_value: "rule/switch9.txt"
 
+#DDNS 域名优先使用国外上游解析  'A'-打开  'B'-关闭
+  - tag: switch16
+    type: switch16
+    args:
+      initial_value: "rule/switch16.txt"
+
 #Prefer IPV4 'A'-打开  'B'-关闭 
   - tag: switch8
     type: switch8
