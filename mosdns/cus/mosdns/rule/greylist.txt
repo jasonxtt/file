@@ -65,3 +65,6 @@ keyword:dualstack.apiproxy-
 keyword:dualstack.ichnaea-web-
 keyword:netflixdnstest
 keyword:browserleak
+domain:push.apple.com
+domain:akadns.net
+keyword:apple.com.edgekey.net
