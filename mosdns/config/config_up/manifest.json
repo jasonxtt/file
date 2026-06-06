@@ -1,0 +1,46 @@
+{
+  "format": 1,
+  "channel": "main",
+  "package_id": "main-config-schema-2",
+  "config_schema": 2,
+  "managed_files": [
+    "config_custom.yaml",
+    "sub_config/adguard.yaml",
+    "sub_config/cache.yaml",
+    "sub_config/domain_output.yaml",
+    "sub_config/for_singbox.yaml",
+    "sub_config/forward_1.yaml",
+    "sub_config/forward_local.yaml",
+    "sub_config/forward_nocn.yaml",
+    "sub_config/forward_nocn_ecs.yaml",
+    "sub_config/process_ot.yaml",
+    "sub_config/process_v4.yaml",
+    "sub_config/process_v6.yaml",
+    "sub_config/requery.yaml",
+    "sub_config/rule_set.yaml",
+    "sub_config/switch.yaml",
+    "sub_config/webinfo.yaml"
+  ],
+  "create_if_missing": {
+    "rule/switch16.txt": "B"
+  },
+  "delete_files": [],
+  "sha256": {
+    "config_custom.yaml": "81957cc9766b2dd0b8242df6392ae9111ca9b60f593fd1c6126ebb9fc2064800",
+    "sub_config/adguard.yaml": "48a7e943fe3067850929885d1820c0dad4dfd1907fcec9f868114530ea6037bb",
+    "sub_config/cache.yaml": "dcea36b057043e714f98bc2eaeea4902ea2e7acee3e40f59a05d9346f9f124dc",
+    "sub_config/domain_output.yaml": "88558e5b699d9e09814587ef3089579f2c1a41310e4942d966b01e1df86c0f25",
+    "sub_config/for_singbox.yaml": "92952a87b2296ec54440dbb9f443e101c8fbf214f7a5ab45997998f4fb42da6f",
+    "sub_config/forward_1.yaml": "5c83623e36331e0b5eef0f6771e0e2d54c89c35a5e07caa2928a7af93629ca7a",
+    "sub_config/forward_local.yaml": "8e8dc0031e94447cf87fcf7afe770a051aa7aa349c5e1ce6e782a3679d3426c0",
+    "sub_config/forward_nocn.yaml": "8511a85d1285bdb8246770379c576ba70cd451ab5399859e6201dbcdce5b7941",
+    "sub_config/forward_nocn_ecs.yaml": "1930563139fdb0f7e3ab6da00a16258170e3008e354ee55bfcd9c34388536ec8",
+    "sub_config/process_ot.yaml": "2c8861b143807a74f5fc9eb788a75d877169d8fe16b63f1047ab2074665fcc38",
+    "sub_config/process_v4.yaml": "fc7def4bdd93664a22586348918c557bf826a76631a7cba1c5d89448b0c796be",
+    "sub_config/process_v6.yaml": "640574e7cc29ffb0979b395161e8af5ac47172d5ec3ee1c1fd97960da46af810",
+    "sub_config/requery.yaml": "48fe8c4333a972e434ce17e3916da5945cb21908953620175d4d2e40258dfb96",
+    "sub_config/rule_set.yaml": "b5776d73b523d754009178deb34a912d06d3f16063d0be1e8c40242cad22e5bc",
+    "sub_config/switch.yaml": "587573fba50c0ec41681597918c8e66e11e81ab914cf42dcfd875615fbdb9899",
+    "sub_config/webinfo.yaml": "b6b992bdaa8912e0a4798ecf4805e36ed22b0663be7885f65ca1034da91e2a44"
+  }
+}
