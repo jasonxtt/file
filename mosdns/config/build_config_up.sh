@@ -8,8 +8,8 @@ OUTPUT_ZIP="${ROOT_DIR}/config_up.zip"
 ALL_ZIP="${ROOT_DIR}/config_all.zip"
 MANIFEST="${SOURCE_DIR}/manifest.json"
 
-SCHEMA=2
-PACKAGE_ID="main-config-schema-2"
+SCHEMA=3
+PACKAGE_ID="main-config-schema-3"
 
 # Keep SCHEMA/PACKAGE_ID in sync with the mosdns binary:
 # coremain/config_update.go requiredConfigSchema/requiredConfigPackageID.
@@ -76,7 +76,8 @@ jq -n \
     config_schema: $config_schema,
     managed_files: $managed_files,
     create_if_missing: {
-      "rule/switch16.txt": "B"
+    "rule/switch16.txt": "B",
+    "rule/switch17.txt": "A"
     },
     delete_files: $deleted_files,
     sha256: $sha256

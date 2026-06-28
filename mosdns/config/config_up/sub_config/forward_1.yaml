@@ -292,22 +292,62 @@ plugins:
       - exec: cname_remover
       - exec: exit
 
-#请求fakeip并加入清单结束
+#FakeIP 分流：代理域名返回 FakeIP，并加入记忆代理清单
+  - tag: sequence_proxy_fakeip_addlist_exit
+    type: sequence
+    args:
+      - exec: flow_setter sequence=sequence_proxy_fakeip_addlist_exit upstream=nocnfake
+      - exec: $nocnfake                             #定义: sub_config/forward_1.yaml:4
+      - matches: "!fast_mark 12"
+        exec: $my_fakeiplist                        #继续作为记忆代理域名列表
+      - exec: exit
+
+#FakeIP 分流：代理域名返回 FakeIP
+  - tag: sequence_proxy_fakeip_exit
+    type: sequence
+    args:
+      - exec: flow_setter sequence=sequence_proxy_fakeip_exit upstream=nocnfake
+      - exec: $nocnfake                             #定义: sub_config/forward_1.yaml:4
+      - exec: exit
+
+#RealIP 分流：代理域名返回国外真实 IP，并加入记忆代理清单
+  - tag: sequence_proxy_realip_addlist_exit
+    type: sequence
+    args:
+      - exec: flow_setter sequence=sequence_proxy_realip_addlist_exit upstream=foreign
+      - exec: $foreign
+      - exec: cname_remover
+      - matches: "!fast_mark 12"
+        exec: $my_fakeiplist                        #继续作为记忆代理域名列表
+      - exec: exit
+
+#RealIP 分流：代理域名返回国外真实 IP
+  - tag: sequence_proxy_realip_exit
+    type: sequence
+    args:
+      - exec: flow_setter sequence=sequence_proxy_realip_exit upstream=foreign
+      - exec: $foreign
+      - exec: cname_remover
+      - exec: exit
+
+#代理域名响应入口：根据 DNS 分流模式返回 FakeIP 或 RealIP，并加入记忆代理清单后结束
   - tag: sequence_fakeip_addlist_exit
     type: sequence
     args:
-      - exec: flow_setter sequence=sequence_fakeip_addlist_exit upstream=nocnfake
-      - exec: $nocnfake                             #定义: sub_config/forward_1.yaml:4
-      - matches: "!fast_mark 12"
-        exec: $my_fakeiplist                        #加入自生成国外域名列表；定义: sub_config/domain_output.yaml:38
+      - matches: switch17 'A'
+        exec: $sequence_proxy_fakeip_addlist_exit
+      - matches: switch17 'B'
+        exec: $sequence_proxy_realip_addlist_exit
       - exec: exit
 
-#请求fakeip并结束
+#代理域名响应入口：根据 DNS 分流模式返回 FakeIP 或 RealIP 后结束
   - tag: sequence_fakeip_exit
     type: sequence
     args:
-      - exec: flow_setter sequence=sequence_fakeip_exit upstream=nocnfake
-      - exec: $nocnfake                             #定义: sub_config/forward_1.yaml:4
+      - matches: switch17 'A'
+        exec: $sequence_proxy_fakeip_exit
+      - matches: switch17 'B'
+        exec: $sequence_proxy_realip_exit
       - exec: exit
 
 #国内域名 内部使用
