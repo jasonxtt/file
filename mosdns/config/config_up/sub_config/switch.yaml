@@ -76,6 +76,12 @@ plugins:
     args:
       initial_value: "rule/switch16.txt"
 
+#DNS 分流模式  'A'-FakeIP分流  'B'-RealIP分流
+  - tag: switch17
+    type: switch17
+    args:
+      initial_value: "rule/switch17.txt"
+
 #Prefer IPV4 'A'-打开  'B'-关闭 
   - tag: switch8
     type: switch8
@@ -105,7 +111,6 @@ plugins:
     type: switch15
     args:
       initial_value: "rule/switch15.txt"
-
 
 
 
