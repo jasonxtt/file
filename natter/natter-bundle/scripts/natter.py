@@ -1872,6 +1872,9 @@ def natter_main(show_title = True):
             Logger.warning("!! Target port is closed !!")
         elif ret1 == 1 and ret3 == ret4 == -1:
             Logger.warning("!! Hole punching failed !!")
+            forwarder.stop_forward()
+            keep_alive.disconnect()
+            os._exit(1)
         elif ret3 == 1 and ret4 == -1:
             Logger.warning("!! You may be behind a firewall !!")
         Logger.info()

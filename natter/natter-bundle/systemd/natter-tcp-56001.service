@@ -7,7 +7,9 @@ Wants=network-online.target
 Type=simple
 ExecStart=/usr/bin/python3 /opt/natter/natter.py -v -U -i FORWARDER_IP -m socket -t LAN_SERVICE_IP -p 56001
 Restart=always
-RestartSec=5
+RestartSec=10s
+RestartSteps=5
+RestartMaxDelaySec=2min
 User=root
 WorkingDirectory=/opt/natter
 
