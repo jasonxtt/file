@@ -1,0 +1,15 @@
+[Unit]
+Description=Natter UDP forward LAN_SERVICE_IP:56003
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/natter/natter.py -v -u -U -i FORWARDER_IP -m socket -t LAN_SERVICE_IP -p 56003
+Restart=always
+RestartSec=5
+User=root
+WorkingDirectory=/opt/natter
+
+[Install]
+WantedBy=multi-user.target
