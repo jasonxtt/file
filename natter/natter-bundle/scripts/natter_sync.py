@@ -11,6 +11,7 @@ from pathlib import Path
 
 STATE_PATH = Path(os.environ.get("STATE_PATH", "/var/lib/natter-sync/state.json"))
 POLL_SECONDS = int(os.environ.get("POLL_SECONDS", "15"))
+TCP_PUBLISH_MIN_UPTIME_SECONDS = int(os.environ.get("TCP_PUBLISH_MIN_UPTIME_SECONDS", "12"))
 
 SSH_KEY = os.environ["SSH_KEY"]
 SSH_HOST = os.environ["SSH_HOST"]
@@ -87,6 +88,64 @@ def load_state():
 def save_state(state):
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     STATE_PATH.write_text(json.dumps(state, indent=2, sort_keys=True))
+
+
+def parse_systemctl_show(text):
+    data = {}
+    for line in text.splitlines():
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        data[key] = value
+    return data
+
+
+def get_service_runtime_status(service):
+    proc = run([
+        "systemctl", "show", service,
+        "--property", "ActiveState",
+        "--property", "SubState",
+        "--property", "ActiveEnterTimestampMonotonic",
+        "--property", "ExecMainPID",
+    ])
+    data = parse_systemctl_show(proc.stdout)
+    active_usec = int(data.get("ActiveEnterTimestampMonotonic") or "0")
+    now_usec = int(time.clock_gettime(time.CLOCK_MONOTONIC) * 1_000_000)
+    uptime_seconds = max(0.0, (now_usec - active_usec) / 1_000_000) if active_usec else 0.0
+    return {
+        "active_state": data.get("ActiveState", ""),
+        "sub_state": data.get("SubState", ""),
+        "exec_main_pid": int(data.get("ExecMainPID") or "0"),
+        "uptime_seconds": uptime_seconds,
+    }
+
+
+def is_target_publish_ready(name, cfg):
+    if cfg["proto"] != "tcp":
+        return True, None
+    status = get_service_runtime_status(cfg["service"])
+    if status["active_state"] != "active" or status["sub_state"] != "running":
+        return False, "service_not_running"
+    if status["uptime_seconds"] < TCP_PUBLISH_MIN_UPTIME_SECONDS:
+        return False, "waiting_for_tcp_validation"
+    return True, None
+
+
+def build_publish_mappings(observed_mappings, previous_published):
+    publish_mappings = {}
+    publish_status = {}
+    for name, cfg in TARGETS.items():
+        ready, reason = is_target_publish_ready(name, cfg)
+        if ready:
+            publish_mappings[name] = observed_mappings[name]
+            publish_status[name] = {"status": "ready"}
+            continue
+        if name in previous_published:
+            publish_mappings[name] = previous_published[name]
+            publish_status[name] = {"status": "holding", "reason": reason}
+            continue
+        publish_status[name] = {"status": "skipped", "reason": reason}
+    return publish_mappings, publish_status
 
 
 REMOTE_SCRIPT_TEMPLATE = r'''
@@ -374,6 +433,9 @@ def maybe_update_ros_nat(mappings):
     for name, cfg in TARGETS.items():
         if "ros_comment" not in cfg:
             continue
+        if name not in mappings:
+            results[name] = {"status": "skipped", "reason": "mapping_unavailable"}
+            continue
         rule_id = ros_find_rule_id(rows, cfg["ros_comment"])
         rule = next(row for row in rows if row.get(".id") == rule_id)
         port_plan = ros_pick_dst_port(rule, mappings[name], addr_rows)
@@ -399,21 +461,39 @@ def main():
     state = load_state()
     while True:
         try:
-            mappings = {
+            observed_mappings = {
                 name: get_mapping(cfg["service"], cfg["proto"])
                 for name, cfg in TARGETS.items()
             }
-            if mappings != state.get("mappings"):
-                ros_result = maybe_update_ros_nat(mappings)
-                yaml_result = update_remote_yamls(mappings)
+            previous_observed = state.get("observed_mappings", state.get("mappings", {}))
+            previous_published = state.get("published_mappings", state.get("mappings", {}))
+            publish_mappings, publish_status = build_publish_mappings(observed_mappings, previous_published)
+            observed_changed = observed_mappings != previous_observed
+            publish_changed = publish_mappings != previous_published
+            state_schema_changed = any(
+                key not in state for key in ("observed_mappings", "publish_status", "published_mappings")
+            )
+            if observed_changed or publish_changed or state_schema_changed:
+                if publish_changed:
+                    ros_result = maybe_update_ros_nat(publish_mappings)
+                    yaml_result = update_remote_yamls(publish_mappings)
+                else:
+                    ros_result = state.get("ros")
+                    yaml_result = state.get("yaml")
                 state = {
-                    "mappings": mappings,
+                    "mappings": publish_mappings,
+                    "observed_mappings": observed_mappings,
+                    "publish_status": publish_status,
+                    "published_mappings": publish_mappings,
                     "ros": ros_result,
                     "updated_at": int(time.time()),
+                    "yaml": yaml_result,
                 }
                 save_state(state)
                 print(
-                    f"synced: {json.dumps(mappings, sort_keys=True)} "
+                    f"synced: observed={json.dumps(observed_mappings, sort_keys=True)} "
+                    f"published={json.dumps(publish_mappings, sort_keys=True)} "
+                    f"publish_status={json.dumps(publish_status, sort_keys=True)} "
                     f"ros={json.dumps(ros_result, sort_keys=True)} "
                     f"yaml={yaml_result}",
                     flush=True,
