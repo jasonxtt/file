@@ -5,13 +5,16 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
 
 STATE_PATH = Path(os.environ.get("STATE_PATH", "/var/lib/natter-sync/state.json"))
+PAGES_ENV_PATH = Path(os.environ.get("PAGES_ENV_PATH", "/etc/natter-sync/pages.env"))
 POLL_SECONDS = int(os.environ.get("POLL_SECONDS", "15"))
 TCP_PUBLISH_MIN_UPTIME_SECONDS = int(os.environ.get("TCP_PUBLISH_MIN_UPTIME_SECONDS", "12"))
+WRANGLER_VERSION = os.environ.get("WRANGLER_VERSION", "4.107.0")
 
 SSH_KEY = os.environ["SSH_KEY"]
 SSH_HOST = os.environ["SSH_HOST"]
@@ -39,8 +42,8 @@ STUN_PATTERNS = {
 }
 
 
-def run(cmd, input_text=None, check=True):
-    proc = subprocess.run(cmd, input=input_text, text=True, capture_output=True)
+def run(cmd, input_text=None, check=True, env=None):
+    proc = subprocess.run(cmd, input=input_text, text=True, capture_output=True, env=env)
     if check and proc.returncode != 0:
         raise RuntimeError(
             f"command failed: {' '.join(cmd)}\nstdout={proc.stdout}\nstderr={proc.stderr}"
@@ -146,6 +149,97 @@ def build_publish_mappings(observed_mappings, previous_published):
             continue
         publish_status[name] = {"status": "skipped", "reason": reason}
     return publish_mappings, publish_status
+
+
+def load_pages_config():
+    if not PAGES_ENV_PATH.exists():
+        return None
+    config = {}
+    for raw_line in PAGES_ENV_PATH.read_text().splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        config[key.strip()] = value.strip()
+    required = [
+        "CF_API_TOKEN",
+        "CF_ACCOUNT_ID",
+        "CF_PAGES_PROJECT",
+        "CF_PAGES_BRANCH",
+        "CF_PAGES_SUB_TOKEN",
+        "CF_PAGES_DOWNLOAD_NAME",
+    ]
+    missing = [key for key in required if not config.get(key)]
+    if missing:
+        raise RuntimeError("missing Pages config: " + ", ".join(missing))
+    return config
+
+
+def pull_remote_file(remote_path, local_path):
+    run([
+        "scp", "-i", SSH_KEY, "-P", SSH_PORT,
+        "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=yes",
+        f"{SSH_USER}@{SSH_HOST}:{remote_path}",
+        local_path,
+    ])
+
+
+def build_pages_headers(sub_path, download_name):
+    return (
+        f"/{sub_path}\n"
+        "  Content-Type: application/x-yaml; charset=utf-8\n"
+        f'  Content-Disposition: attachment; filename="{download_name}"\n'
+        "  Cache-Control: no-store\n"
+        "  X-Robots-Tag: noindex, nofollow, noarchive\n"
+    )
+
+
+def parse_pages_deploy_url(output):
+    match = re.search(r"https://[A-Za-z0-9.-]+\.pages\.dev", output)
+    return match.group(0) if match else None
+
+
+def update_pages_subscription():
+    config = load_pages_config()
+    if not config:
+        return {"status": "disabled", "reason": "config_missing"}
+
+    source_name = config.get("CF_PAGES_SOURCE_YAML", "clash")
+    source_yaml = REMOTE_YAMLS.get(source_name)
+    if not source_yaml:
+        raise RuntimeError(f"Pages source YAML not found in REMOTE_YAMLS: {source_name}")
+
+    sub_name = f"{config['CF_PAGES_SUB_TOKEN']}.yaml"
+    sub_path = f"sub/{sub_name}"
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        sub_dir = Path(tmpdir) / "sub"
+        sub_dir.mkdir(parents=True, exist_ok=True)
+        local_yaml = sub_dir / sub_name
+        pull_remote_file(source_yaml["path"], str(local_yaml))
+        (Path(tmpdir) / "_headers").write_text(
+            build_pages_headers(sub_path, config["CF_PAGES_DOWNLOAD_NAME"])
+        )
+        (Path(tmpdir) / "404.html").write_text("404\n")
+
+        env = os.environ.copy()
+        env["CLOUDFLARE_API_TOKEN"] = config["CF_API_TOKEN"]
+        env["CLOUDFLARE_ACCOUNT_ID"] = config["CF_ACCOUNT_ID"]
+        proc = run([
+            "npx", "--yes", f"wrangler@{WRANGLER_VERSION}",
+            "pages", "deploy", tmpdir,
+            "--project-name", config["CF_PAGES_PROJECT"],
+            "--branch", config["CF_PAGES_BRANCH"],
+        ], env=env)
+
+    output = "\n".join(filter(None, [proc.stdout.strip(), proc.stderr.strip()]))
+    return {
+        "status": "updated",
+        "custom_domain": config.get("CF_PAGES_DOMAIN"),
+        "deployment_url": parse_pages_deploy_url(output),
+        "source_yaml": source_name,
+        "sub_path": sub_path,
+    }
 
 
 REMOTE_SCRIPT_TEMPLATE = r'''
@@ -473,16 +567,25 @@ def main():
             state_schema_changed = any(
                 key not in state for key in ("observed_mappings", "publish_status", "published_mappings")
             )
-            if observed_changed or publish_changed or state_schema_changed:
+            pages_retry = state.get("pages", {}).get("status") == "error"
+            if observed_changed or publish_changed or state_schema_changed or pages_retry:
                 if publish_changed:
                     ros_result = maybe_update_ros_nat(publish_mappings)
                     yaml_result = update_remote_yamls(publish_mappings)
                 else:
                     ros_result = state.get("ros")
                     yaml_result = state.get("yaml")
+                try:
+                    if publish_changed or pages_retry:
+                        pages_result = update_pages_subscription()
+                    else:
+                        pages_result = state.get("pages")
+                except Exception as exc:
+                    pages_result = {"status": "error", "error": str(exc)}
                 state = {
                     "mappings": publish_mappings,
                     "observed_mappings": observed_mappings,
+                    "pages": pages_result,
                     "publish_status": publish_status,
                     "published_mappings": publish_mappings,
                     "ros": ros_result,
@@ -495,7 +598,7 @@ def main():
                     f"published={json.dumps(publish_mappings, sort_keys=True)} "
                     f"publish_status={json.dumps(publish_status, sort_keys=True)} "
                     f"ros={json.dumps(ros_result, sort_keys=True)} "
-                    f"yaml={yaml_result}",
+                    f"yaml={yaml_result} pages={json.dumps(pages_result, sort_keys=True)}",
                     flush=True,
                 )
         except Exception as exc:

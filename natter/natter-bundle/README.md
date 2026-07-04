@@ -17,9 +17,10 @@
 ```text
 natter-bundle/
 ├── env/natter-sync.env.example
+├── env/pages.env.example
 ├── examples/
+│   ├── clash-natter-example.yaml
 │   ├── Egern-web.example.yaml
-│   ├── hy2-home-natter.example.yaml
 │   └── stash-ph-web-natter.example.yaml
 ├── scripts/
 │   ├── healthcheck.sh
@@ -29,7 +30,6 @@ natter-bundle/
 └── systemd/
     ├── natter-sync.service
     ├── natter-tcp-56001.service
-    ├── natter-tcp-56004.service
     └── natter-udp-56003.service
 ```
 
@@ -37,6 +37,7 @@ natter-bundle/
 
 - `install.sh` 负责把同步脚本、环境文件模板、systemd 单元安装到系统目录
 - `natter_sync.py` 负责解析 `Natter` 日志，更新 RouterOS 和远端 YAML
+- `env/pages.env.example` 提供一个可选的 `Cloudflare Pages` 发布配置样例
 - `examples/` 提供 `stash` / `egern` / `clash(mihomo)` 示例订阅
 - `healthcheck.sh` 用来快速查看服务状态和同步结果
 
@@ -48,7 +49,8 @@ natter-bundle/
 2. 得到公网 `server`、公网 `port`、本地监听 `local_port`
 3. 如果配置了 RouterOS，则自动 PATCH 对应 NAT 规则
 4. 通过 SSH 登录 VPS，改写一个或多个订阅 YAML
-5. 把当前状态写到 `/var/lib/natter-sync/state.json`
+5. 如果额外配置了 `Cloudflare Pages`，再把其中一份 YAML 发布到固定 token 订阅地址
+6. 把当前状态写到 `/var/lib/natter-sync/state.json`
 
 ## 3. 你需要准备什么
 
@@ -141,7 +143,6 @@ RANDOM_LONG_TOKEN=9f3b7f2c2a5b4d6e8c1f0a9b7d3e5c11
 
 - `ss-in-natter`
 - `hy2-in-natter`
-- `anytls-in-natter`
 
 支持的远端格式：
 
@@ -156,9 +157,9 @@ RANDOM_LONG_TOKEN=9f3b7f2c2a5b4d6e8c1f0a9b7d3e5c11
 
 示例文件：
 
+- `examples/clash-natter-example.yaml`
 - `examples/stash-ph-web-natter.example.yaml`
 - `examples/Egern-web.example.yaml`
-- `examples/hy2-home-natter.example.yaml`
 
 ## 5. 部署前先确认内网端口可达
 
@@ -166,7 +167,6 @@ RANDOM_LONG_TOKEN=9f3b7f2c2a5b4d6e8c1f0a9b7d3e5c11
 
 ```bash
 timeout 5 bash -lc '</dev/tcp/LAN_SERVICE_IP/56001' && echo tcp-open || echo tcp-closed
-timeout 5 bash -lc '</dev/tcp/LAN_SERVICE_IP/56004' && echo tcp-open || echo tcp-closed
 ```
 
 UDP 不像 TCP 那样容易直接探测，至少要确认：
@@ -204,19 +204,15 @@ python3 /opt/natter/natter.py --help
 - `-t LAN_SERVICE_IP`
 - 需要的端口号
 
-当前 bundle 预置了三条：
+当前 bundle 预置了两条：
 
 - `natter-tcp-56001.service`
 - `natter-udp-56003.service`
-- `natter-tcp-56004.service`
 
 对应关系是：
 
 - `56001/tcp` -> `ss-in-natter`
 - `56003/udp` -> `hy2-in-natter`
-- `56004/tcp` -> `anytls-in-natter`
-
-如果你不需要 `56004/tcp`，可以不启用它，但要同步调整 `TARGETS_JSON` 和远端 YAML。
 
 ## 8. 在 VPS 准备订阅 YAML
 
@@ -306,6 +302,7 @@ chmod +x scripts/install.sh scripts/healthcheck.sh
 
 ```dotenv
 POLL_SECONDS=15
+TCP_PUBLISH_MIN_UPTIME_SECONDS=12
 STATE_PATH=/var/lib/natter-sync/state.json
 
 SSH_KEY=/root/.ssh/id_ed25519_natter_sync
@@ -318,7 +315,7 @@ ROS_USER=router_api_user
 ROS_PASS=router_api_pass
 ROS_TARGET_IP=10.0.0.11
 
-TARGETS_JSON={"ss-in-natter":{"service":"natter-tcp-56001.service","proto":"tcp","ros_comment":"natter-56001"},"anytls-in-natter":{"service":"natter-tcp-56004.service","proto":"tcp","ros_comment":"natter-56004"},"hy2-in-natter":{"service":"natter-udp-56003.service","proto":"udp","ros_comment":"natter-56003"}}
+TARGETS_JSON={"ss-in-natter":{"service":"natter-tcp-56001.service","proto":"tcp","ros_comment":"natter-56001"},"hy2-in-natter":{"service":"natter-udp-56003.service","proto":"udp","ros_comment":"natter-56003"}}
 
 REMOTE_YAMLS_JSON={"stash":{"path":"/root/docker/gohttpserver/stash/stash-ph-web-natter.yaml","format":"stash"},"egern":{"path":"/root/docker/gohttpserver/egern/Egern-web.yaml","format":"egern"},"clash":{"path":"/root/docker/gohttpserver/clash/hy2-home-natter.yaml","format":"clash","targets":["ss-in-natter","hy2-in-natter"]},"v2rayn":{"path":"/root/docker/gohttpserver/v2rayN/natter-v2rayn.txt","format":"v2rayn","targets":["ss-in-natter","hy2-in-natter"]}}
 ```
@@ -347,7 +344,6 @@ REMOTE_YAMLS_JSON={"stash":{"path":"/root/docker/gohttpserver/stash/stash-ph-web
 
 - `natter-56001`
 - `natter-56003`
-- `natter-56004`
 
 规则原则：
 
@@ -431,7 +427,6 @@ https://SUB_DOMAIN/sub/RANDOM_LONG_TOKEN.yaml
 systemctl daemon-reload
 systemctl enable --now natter-tcp-56001.service
 systemctl enable --now natter-udp-56003.service
-systemctl enable --now natter-tcp-56004.service
 systemctl enable --now natter-sync.service
 ```
 
@@ -440,7 +435,6 @@ systemctl enable --now natter-sync.service
 ```bash
 systemctl status natter-tcp-56001.service
 systemctl status natter-udp-56003.service
-systemctl status natter-tcp-56004.service
 systemctl status natter-sync.service
 ```
 
@@ -451,7 +445,6 @@ systemctl status natter-sync.service
 ```bash
 journalctl -u natter-tcp-56001.service -n 50 --no-pager -o cat
 journalctl -u natter-udp-56003.service -n 50 --no-pager -o cat
-journalctl -u natter-tcp-56004.service -n 50 --no-pager -o cat
 ```
 
 ### 15.2 看同步器是否正常
@@ -477,7 +470,6 @@ curl -sS -u ROS_USER:ROS_PASS http://ROUTER_IP/rest/ip/firewall/nat
 
 - `natter-56001`
 - `natter-56003`
-- `natter-56004`
 
 重点看：
 
@@ -508,7 +500,7 @@ cd /root/natter-bundle
 检查：
 
 - 节点 `name` 是否真的存在
-- 拼写是否与 `ss-in-natter` / `hy2-in-natter` / `anytls-in-natter` 完全一致
+- 拼写是否与 `ss-in-natter` / `hy2-in-natter` 完全一致
 - 某个 `clash` YAML 是否设置了 `targets`
 
 ### 16.2 `not_routeros_json`
