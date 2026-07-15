@@ -1,8 +1,8 @@
 {
   "cnfake": [
     {
-      "tag": "mihomo",
-      "enabled": true,
+      "tag": "cnfake",
+      "enabled": false,
       "protocol": "udp",
       "addr": "udp://127.0.0.1:1053"
     }
