@@ -17,7 +17,6 @@ plugins:
   - tag: sequence_ipv4_cnfakeoff
     type: sequence
     args:
-      - exec: $sequence_special_v4                  #定义: sub_config/special_groups.yaml:430
       - matches: fast_mark 9                        #!cn fakeip filter
         exec: $sequence_google_exit                 #向国外dns请求realip并结束；定义: sub_config/forward_1.yaml:255
       - matches: fast_mark 9                        #序列内含有cache插件时，子序列内exit无法结束主序列，仅能结束cache更新序列
@@ -72,7 +71,6 @@ plugins:
   - tag: sequence_ipv4_cnfakeon
     type: sequence
     args:
-      - exec: $sequence_special_v4                  #定义: sub_config/special_groups.yaml:430
       - matches: fast_mark 9                        #!cn fakeip filter
         exec: $sequence_google_exit                 #向国外dns请求realip并结束；定义: sub_config/forward_1.yaml:255
       - matches: fast_mark 9
@@ -136,7 +134,6 @@ plugins:
   - tag: sequence_ipv4_cnfakeoff_requery
     type: sequence
     args:
-      - exec: $sequence_special_v4                  #定义: sub_config/special_groups.yaml:430
       - matches: fast_mark 9                        #!cn fakeip filter
         exec: $sequence_google_exit                 #向国外dns请求realip并结束；定义: sub_config/forward_1.yaml:255
       - matches: fast_mark 9
@@ -208,7 +205,6 @@ plugins:
   - tag: sequence_ipv4_cnfakeon_requery
     type: sequence
     args:
-      - exec: $sequence_special_v4                  #定义: sub_config/special_groups.yaml:430
       - matches: fast_mark 9                        #!cn fakeip filter
         exec: $sequence_google_exit                 #向国外dns请求realip并结束；定义: sub_config/forward_1.yaml:255
       - matches: fast_mark 9
@@ -286,5 +282,3 @@ plugins:
         exec: exit
       - matches: "resp_ip 0.0.0.0/0"                #存在非cn ip
         exec: $sequence_fakeip_addlist_exit         #定义: sub_config/forward_1.yaml:265
-
-

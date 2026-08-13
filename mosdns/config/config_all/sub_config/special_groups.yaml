@@ -7,14 +7,6 @@ plugins:
       default_tag: ""
       rules: []
 
-  - tag: sequence_special_v4
-    type: sequence
-    args: []
-
-  - tag: sequence_special_v6
-    type: sequence
-    args: []
-
-  - tag: sequence_special_ot
+  - tag: sequence_special
     type: sequence
     args: []
