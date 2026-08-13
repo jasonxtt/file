@@ -37,6 +37,7 @@ plugins:
       - matches: "!fast_mark 48"            #可以视为在快速路径中没有比对过
         exec: $unified_matcher1             #匹配屏蔽域名表并设置相应的fast_mark
       - exec: $special_upstream_matcher     #匹配专属分流组并设置 50以上的mark
+      - exec: $sequence_special_all        #专属分流组在DDNS和普通分流之前实际执行
       - matches: switch8 'A'                #IPv4优先：存在A记录时抑制AAAA结果
         exec: prefer_ipv4
       - matches:                            #屏蔽黑名单域名
