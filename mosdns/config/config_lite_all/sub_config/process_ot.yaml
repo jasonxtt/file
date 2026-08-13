@@ -3,7 +3,6 @@ plugins:
   - tag: sequence_other
     type: sequence
     args:
-      - exec: $sequence_special_all
       - matches: fast_mark 8                               #白名单
         exec: $sequence_local
       - matches: fast_mark 8

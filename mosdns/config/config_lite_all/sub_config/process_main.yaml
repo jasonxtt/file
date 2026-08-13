@@ -3,8 +3,6 @@ plugins:
   - tag: sequence_main
     type: sequence
     args:
-#################特殊分流组规则#################
-      - exec: $sequence_special_all                 
 #################灰名单规则#################
       - matches: fast_mark 7                          #灰名单
         exec: $sequence_fakeip
