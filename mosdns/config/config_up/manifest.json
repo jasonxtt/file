@@ -1,8 +1,8 @@
 {
   "format": 1,
   "channel": "main",
-  "package_id": "main-config-schema-3",
-  "config_schema": 3,
+  "package_id": "main-config-schema-4",
+  "config_schema": 4,
   "managed_files": [
     "config_custom.yaml",
     "sub_config/adguard.yaml",
@@ -27,7 +27,7 @@
   },
   "delete_files": [],
   "sha256": {
-    "config_custom.yaml": "81957cc9766b2dd0b8242df6392ae9111ca9b60f593fd1c6126ebb9fc2064800",
+    "config_custom.yaml": "ce0b4d857e7371d42021738a7eba6715e1ac9407257fdbc1bbb8a826329f211a",
     "sub_config/adguard.yaml": "48a7e943fe3067850929885d1820c0dad4dfd1907fcec9f868114530ea6037bb",
     "sub_config/cache.yaml": "dcea36b057043e714f98bc2eaeea4902ea2e7acee3e40f59a05d9346f9f124dc",
     "sub_config/domain_output.yaml": "88558e5b699d9e09814587ef3089579f2c1a41310e4942d966b01e1df86c0f25",
@@ -36,9 +36,9 @@
     "sub_config/forward_local.yaml": "8e8dc0031e94447cf87fcf7afe770a051aa7aa349c5e1ce6e782a3679d3426c0",
     "sub_config/forward_nocn.yaml": "8511a85d1285bdb8246770379c576ba70cd451ab5399859e6201dbcdce5b7941",
     "sub_config/forward_nocn_ecs.yaml": "1930563139fdb0f7e3ab6da00a16258170e3008e354ee55bfcd9c34388536ec8",
-    "sub_config/process_ot.yaml": "2c8861b143807a74f5fc9eb788a75d877169d8fe16b63f1047ab2074665fcc38",
-    "sub_config/process_v4.yaml": "fc7def4bdd93664a22586348918c557bf826a76631a7cba1c5d89448b0c796be",
-    "sub_config/process_v6.yaml": "640574e7cc29ffb0979b395161e8af5ac47172d5ec3ee1c1fd97960da46af810",
+    "sub_config/process_ot.yaml": "9c75e0272c535237a164a0ab65895322293c0fb3038c32c4c8ec9d87850638aa",
+    "sub_config/process_v4.yaml": "abaab03505ef3d217f7e0d99dd07eb3c11a7186054fb35a60af6604b410ce9e6",
+    "sub_config/process_v6.yaml": "64837b3ec65b1d38d35e311c65e1c2e6dbe388027b1d981dac9ab62b8e296dd3",
     "sub_config/requery.yaml": "48fe8c4333a972e434ce17e3916da5945cb21908953620175d4d2e40258dfb96",
     "sub_config/rule_set.yaml": "b5776d73b523d754009178deb34a912d06d3f16063d0be1e8c40242cad22e5bc",
     "sub_config/switch.yaml": "69a2bee3c3fd0c91133f26082f2dc7ef1f4eb49126bc5739cc5f8342b0d47850",

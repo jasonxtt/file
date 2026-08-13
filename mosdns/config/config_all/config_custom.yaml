@@ -61,6 +61,7 @@ plugins:
         - fast_mark 5
         - switch7 'A'                           #定义: sub_config/switch.yaml:62
         exec: reject 3
+      - exec: $sequence_special                 #特殊组在DDNS和普通分流之前实际执行
       - matches:
         - fast_mark 6                    #向上游请求ddns域名，无过期缓存
         - switch16 'A'                          #DDNS优先国外解析；定义: sub_config/switch.yaml
@@ -168,6 +169,7 @@ plugins:
         - fast_mark 5
         - switch7 'A'                           #定义: sub_config/switch.yaml:62
         exec: reject 3
+      - exec: $sequence_special                 #特殊组在DDNS和普通分流之前实际执行
       - matches:
         - fast_mark 6                    #向上游请求ddns域名，无过期缓存
         - switch16 'A'                          #DDNS优先国外解析；定义: sub_config/switch.yaml

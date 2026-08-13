@@ -8,8 +8,8 @@ OUTPUT_ZIP="${ROOT_DIR}/config_up.zip"
 ALL_ZIP="${ROOT_DIR}/config_all.zip"
 MANIFEST="${SOURCE_DIR}/manifest.json"
 
-SCHEMA=3
-PACKAGE_ID="main-config-schema-3"
+SCHEMA=4
+PACKAGE_ID="main-config-schema-4"
 
 # Keep SCHEMA/PACKAGE_ID in sync with the mosdns binary:
 # coremain/config_update.go requiredConfigSchema/requiredConfigPackageID.
