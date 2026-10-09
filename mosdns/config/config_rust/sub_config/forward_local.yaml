@@ -1,0 +1,15 @@
+plugins:
+# 定义了一个带过期缓存的内部使用/外部使用的国内dns服务器
+  - tag: domestic
+    type: aliapi
+    args:
+      concurrent: 2                             #与 Go 默认包等效：webinfo/upstream_overrides.json 启用 2 个上游，Go 按启用数重算为 2；原生不重算，见 README-rust.md
+      proxy: $main_proxy                        #本组条目可用 use_proxy: true 选择走代理（默认都不走）
+      upstreams:
+        - tag: 阿里UDP
+          addr: "udp://223.5.5.5"
+        - tag: 阿里DOH
+          addr: "https://dns.alidns.com/dns-query"
+          dial_addr: "223.5.5.5"
+        #已预置但默认停用的上游（WebUI 上游页可重新启用，保存后写入 webinfo/settings.json）：
+        #阿里TCP tcp://223.5.5.5 / 阿里DOT tls://223.5.5.5 / 运营商 udp://114.114.114.114
