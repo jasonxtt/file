@@ -11,7 +11,7 @@
 | SOCKS5 代理地址 | `sub_config/settings.yaml` 的 `main_proxy`（`socks5_proxy`） | 系统设置 → SOCKS5 / ECS 覆盖 | `webinfo/settings.json` |
 | ECS 地址 | 同上 `client_ecs`（`ecs_address`） | 同上 | 同上 |
 | 各组上游列表、是否走代理 | 各 `aliapi` 的 `upstreams`（条目 `use_proxy`） | 上游设置 | 同上 |
-| 域名生成开关 | `domain_output` 插件的 `enabled` | 系统设置 → 域名生成 | 同上 |
+| 域名生成开关 | `route_learner` 各类别的 `enabled` | 系统设置 → 域名生成 | 同上 |
 
 - `webinfo/settings.json` 只保存**与本包 YAML 不同**的值；删除该文件即回到本包默认。修改在 WebUI 保存后**立即生效**，不需要重启。
 - **代理默认为空 = 不使用代理**（与 `config_all` 在 Go 下默认的“全局 socks5 为空”相同）。填写 `main_proxy` 后，所有规则源下载以及
@@ -55,12 +55,19 @@
 - `cnfake` 的覆盖条目全部停用，Go 沿用 YAML 列表，所以仍是 `udp://127.0.0.1:1053`，仅补上标签 `cnfake`（WebUI 要求每个上游有标签）。
 - 两个组都加插件级 `proxy: $main_proxy`（默认不走代理）。
 
+### 路由学习（config schema 2）：`sub_config/route_learner.yaml`（新）、`domain_output.yaml`、`rule_set.yaml`、`forward_1.yaml`、`process_v4.yaml`、`process_v6.yaml`
+原来分散在流程里的 `matches` + `exec: $my_xxxlist` 学习名单（七个 `domain_output`、七个 `my_*rule` 规则源、`unified_matcher1` 里的五条学习规则）改成一个 `route_learner`
+（存储，每类每条单独过期，状态写 `gen/route_learner.json`）和七个 `route_learn` 规则（条件与类别）；流程里只剩 `exec: $learn_xxx` 一行。
+`domain_output.yaml` 只剩 `top_domains`（访问排行，只计数）。类别 tag（`my_realiplist` 等）、标签字符串与 mark（2/3/4/11/12）都没变，后续流程的 `fast_mark` 判断没变。
+`config_custom.yaml` 的 `sequence_requery`（只有刷新分流的服务器用它）不再因 `fast_mark 2/3`（记忆无V4/无V6）提前空答：刷新要重新探测这些名字，规则才能再确认它们、刷新到期时间；普通查询入口 `sequence_6666` 不变。
+`gen/` 下旧的学习名单文件（`*list.txt`、`*rule.txt`）不再被读取，已部署的机器上可以手动删除。详见 mosdns-rust 的 `docs/rust/contracts/native-route-learner.md`。
+
 ### `webinfo/`
 删除 `upstream_overrides.json` 与 `config_overrides.json`（原生不读取，保留会让人误以为它们仍然生效）。其余文件不变。
 
 ## 等价性论证（路由、上游、代理、ECS）
 
-- **路由与序列**：除上面列出的 `aliapi` 参数和 `ecs` 写法外，所有 `sequence`、规则、缓存、开关、监听、`domain_output`、`requery` 等定义没有任何改动。
+- **路由与序列**：除上面列出的 `aliapi` 参数和 `ecs` 写法外，所有 `sequence`、规则、缓存、开关、监听、`requery` 等定义没有任何改动（学习名单见上面“路由学习”一节）。
 - **上游**：每个 `aliapi` 组的有效上游列表、协议、地址、`dial_addr`、`concurrent` 与 `config_all`（含随包覆盖文件）在 Go 下的实际值一致；仅 `foreignecs` 的上游标签加了后缀。
 - **代理**：Go 默认（全局 socks5 为空）下所有连接都是直连；本包默认 `main_proxy` 为空，同样全部直连。填写代理后，Go 下走代理的集合是“全部规则源 + `foreign`/`foreignecs` 的 tcp/tls/https 条目”，
   本包与之相同（规则源 `proxy: $main_proxy`，两组条目 `use_proxy: true`）；UDP 条目在两边都不使用代理。

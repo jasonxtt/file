@@ -28,55 +28,6 @@ plugins:
       proxy: $main_proxy 
       local_config: "srs/cuscn.json" 
 
-#生成的realip规则
-  - tag: my_realiprule
-    type: domain_set_light
-    args:
-      files:
-        - "gen/realiprule.txt"
-
-#生成的fakeip规则
-  - tag: my_fakeiprule
-    type: domain_set_light
-    args:
-      files:
-        - "gen/fakeiprule.txt"
-
-#特殊v4域名 国内dns无解析 国外dns有解析
-  - tag: my_sv4rule
-    type: domain_set_light
-    args:
-      files:
-        - "gen/sv4rule.txt"
-
-#生成的realip没有v6的域名规则
-  - tag: my_nov6rule
-    type: domain_set_light
-    args:
-      files:
-        - "gen/nov6rule.txt"
-
-#生成的realip没有v4的域名规则
-  - tag: my_nov4rule
-    type: domain_set_light
-    args:
-      files:
-        - "gen/nov4rule.txt"
-
-#生成的节点没有v6的域名规则
-  - tag: my_nodenov6rule
-    type: domain_set
-    args:
-      files:
-        - "gen/nodenov6rule.txt"
-
-#生成的节点没有ip的域名规则
-  - tag: my_nodenov4rule
-    type: domain_set
-    args:
-      files:
-        - "gen/nodenov4rule.txt"
-
 #中国域名列表
   - tag: geosite_cn
     type: sd_set_light    
@@ -148,6 +99,8 @@ plugins:
         - "rule/ddnslist.txt"
 
 #统一域名匹配,设置fast_mark和域名输出tag，屏蔽部分
+#学习结果（记忆直连/记忆代理/记忆无V4/记忆无V6/特殊域名）不在这里：由 route_learner（sub_config/route_learner.yaml）在求值时并入，
+#学习层的标签在前、mark 位或、命中后不设默认 mark 17
   - tag: unified_matcher1
     type: domain_mapper
     args:
@@ -157,15 +110,6 @@ plugins:
         - tag: blocklist
           mark: 1 
           output_tag: "黑名单"
-        - tag: my_nov4rule
-          mark: 2 
-          output_tag: "记忆无V4"
-        - tag: my_nov6rule
-          mark: 3 
-          output_tag: "记忆无V6"
-        - tag: my_sv4rule
-          mark: 4 
-          output_tag: "特殊域名"
         - tag: adguard
           mark: 5 
           output_tag: "广告屏蔽"
@@ -184,12 +128,6 @@ plugins:
         - tag: cnfakeipfilter
           mark: 10
           output_tag: "CN fakeip filter"
-        - tag: my_realiprule
-          mark: 11
-          output_tag: "记忆直连"
-        - tag: my_fakeiprule
-          mark: 12
-          output_tag: "记忆代理"
         - tag: cuscn
           mark: 13
           output_tag: "订阅直连补充"
