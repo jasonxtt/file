@@ -47,12 +47,12 @@ plugins:
         exec: exit
 #列表外域名处理，后面默认都是fast_mark 17的逻辑
 ##先向上游请求真实的dns响应
-      - matches: switch3 'A'                        #兼容模式；定义: sub_config/switch.yaml:27
+      - matches: flag core_mode=compat              #兼容模式；定义: sub_config/flags.yaml
         exec: $sequence_local                       #表外域名先发到国内查第1次；定义: sub_config/forward_1.yaml:112
-      - matches: switch3 'B'                        #安全模式；定义: sub_config/switch.yaml:27
+      - matches: flag core_mode=safe                #安全模式；定义: sub_config/flags.yaml
         exec: $sequence_google_node                 #表外域名先带ecs发到8888查第1次；定义: sub_config/forward_nocn_ecs.yaml:12
       - matches:
-        - switch3 'B'                               #安全模式；定义: sub_config/switch.yaml:27
+        - flag core_mode=safe                       #安全模式；定义: sub_config/flags.yaml
         - "!resp_ip 0.0.0.0/0"                      #还是没有IP
         exec: $sequence_local                       #安全模式国内dns查第2次；定义: sub_config/forward_1.yaml:112
 ##有ip响应的，对比直连IP与geoipcn后再处理
@@ -105,12 +105,12 @@ plugins:
         exec: exit
 #列表外域名处理，后面默认都是fast_mark 17的逻辑
 ##先向上游请求真实的dns响应
-      - matches: switch3 'A'                        #兼容模式；定义: sub_config/switch.yaml:27
+      - matches: flag core_mode=compat              #兼容模式；定义: sub_config/flags.yaml
         exec: $sequence_local                       #表外域名先发到国内查第1次；定义: sub_config/forward_1.yaml:112
-      - matches: switch3 'B'                        #安全模式；定义: sub_config/switch.yaml:27
+      - matches: flag core_mode=safe                #安全模式；定义: sub_config/flags.yaml
         exec: $sequence_google_node                 #表外域名先带ecs发到8888查第1次；定义: sub_config/forward_nocn_ecs.yaml:12
       - matches:
-        - switch3 'B'                               #安全模式；定义: sub_config/switch.yaml:27
+        - flag core_mode=safe                       #安全模式；定义: sub_config/flags.yaml
         - "!resp_ip 0.0.0.0/0"                      #还是没有IP
         exec: $sequence_local                       #安全模式国内dns查第2次；定义: sub_config/forward_1.yaml:112
 ##有ip响应的，对比直连IP与geoipcn后再处理
@@ -164,14 +164,14 @@ plugins:
         exec: exit
 #列表外域名处理，后面默认都是fast_mark 17的逻辑
 ##先向上游请求真实的dns响应
-      - matches: switch3 'A'                        #兼容模式；定义: sub_config/switch.yaml:27
+      - matches: flag core_mode=compat              #兼容模式；定义: sub_config/flags.yaml
         exec: $sequence_local                       #表外域名先发到国内查第1次；定义: sub_config/forward_1.yaml:112
-      - matches: switch3 'B'                        #安全模式；定义: sub_config/switch.yaml:27
+      - matches: flag core_mode=safe                #安全模式；定义: sub_config/flags.yaml
         exec: $sequence_google_node                 #表外域名先带ecs发到8888查第1次；定义: sub_config/forward_nocn_ecs.yaml:12
       - matches: "!resp_ip 0.0.0.0/0"               #国内dns/国外dns+ecs无IP的情况
         exec: fast_mark 4                           #做出标记
       - matches:
-        - switch3 'B'                               #安全模式；定义: sub_config/switch.yaml:27
+        - flag core_mode=safe                       #安全模式；定义: sub_config/flags.yaml
         - "!resp_ip 0.0.0.0/0"                      #还是没有IP
         exec: $sequence_local                       #安全模式国内dns查第2次；定义: sub_config/forward_1.yaml:112
 ###仅在requery时，才进行第2次查询，用于为fx168这种特殊情况进行分流，仅在requery时生成nov4列表
@@ -236,14 +236,14 @@ plugins:
         exec: exit
 #列表外域名处理，后面默认都是fast_mark 17的逻辑
 ##先向上游请求真实的dns响应
-      - matches: switch3 'A'                        #兼容模式；定义: sub_config/switch.yaml:27
+      - matches: flag core_mode=compat              #兼容模式；定义: sub_config/flags.yaml
         exec: $sequence_local                       #表外域名先发到国内查第1次；定义: sub_config/forward_1.yaml:112
-      - matches: switch3 'B'                        #安全模式；定义: sub_config/switch.yaml:27
+      - matches: flag core_mode=safe                #安全模式；定义: sub_config/flags.yaml
         exec: $sequence_google_node                 #表外域名先带ecs发到8888查第1次；定义: sub_config/forward_nocn_ecs.yaml:12
       - matches: "!resp_ip 0.0.0.0/0"               #国内dns/国外dns+ecs无IP的情况
         exec: fast_mark 4                           #做出标记
       - matches:
-        - switch3 'B'                               #安全模式；定义: sub_config/switch.yaml:27
+        - flag core_mode=safe                       #安全模式；定义: sub_config/flags.yaml
         - "!resp_ip 0.0.0.0/0"                      #还是没有IP
         exec: $sequence_local                       #安全模式国内dns查第2次；定义: sub_config/forward_1.yaml:112
       - matches: "!resp_ip 0.0.0.0/0"               #国内dns/国外dns+ecs无IP的情况

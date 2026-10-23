@@ -19,7 +19,7 @@ plugins:
   - tag: sequence_google_in
     type: sequence
     args:
-      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_google                         #定义: sub_config/cache.yaml:36
       - exec: flow_setter sequence=sequence_google_in upstream=foreign
       - exec: $foreign                              #定义: sub_config/forward_nocn.yaml:4

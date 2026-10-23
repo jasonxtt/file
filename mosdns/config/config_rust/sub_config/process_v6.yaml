@@ -33,12 +33,12 @@ plugins:
         exec: exit
 #列表外域名处理，后面默认都是fast_mark 17的逻辑
 ##先向上游请求真实的dns响应
-      - matches: switch3 'A'                        #兼容模式；定义: sub_config/switch.yaml:27
+      - matches: flag core_mode=compat              #兼容模式；定义: sub_config/flags.yaml
         exec: $sequence_local                       #表外域名先发到国内查第1次；定义: sub_config/forward_1.yaml:112
-      - matches: switch3 'B'                        #安全模式；定义: sub_config/switch.yaml:27
+      - matches: flag core_mode=safe                #安全模式；定义: sub_config/flags.yaml
         exec: $sequence_google_node                 #表外域名先带ecs发到8888查第1次；定义: sub_config/forward_nocn_ecs.yaml:12
       - matches:
-        - switch3 'B'                               #安全模式；定义: sub_config/switch.yaml:27
+        - flag core_mode=safe                       #安全模式；定义: sub_config/flags.yaml
         - "!resp_ip 2000::/3"                       #还是没有IP
         exec: $sequence_local                       #安全模式国内dns查第2次；定义: sub_config/forward_1.yaml:112
 ##再根据响应找出确实无IP的域名
@@ -98,12 +98,12 @@ plugins:
         exec: exit
 #列表外域名处理，后面默认都是fast_mark 17的逻辑
 ##先向上游请求真实的dns响应
-      - matches: switch3 'A'                        #兼容模式；定义: sub_config/switch.yaml:27
+      - matches: flag core_mode=compat              #兼容模式；定义: sub_config/flags.yaml
         exec: $sequence_local                       #表外域名先发到国内查第1次；定义: sub_config/forward_1.yaml:112
-      - matches: switch3 'B'                        #安全模式；定义: sub_config/switch.yaml:27
+      - matches: flag core_mode=safe                #安全模式；定义: sub_config/flags.yaml
         exec: $sequence_google_node                 #表外域名先带ecs发到8888查第1次；定义: sub_config/forward_nocn_ecs.yaml:12
       - matches:
-        - switch3 'B'                               #安全模式；定义: sub_config/switch.yaml:27
+        - flag core_mode=safe                       #安全模式；定义: sub_config/flags.yaml
         - "!resp_ip 2000::/3"                       #还是没有IP
         exec: $sequence_local                       #安全模式国内dns查第2次；定义: sub_config/forward_1.yaml:112
 ##再根据响应找出确实无IP的域名
@@ -168,12 +168,12 @@ plugins:
         exec: exit
 #列表外域名处理，后面默认都是fast_mark 17的逻辑
 ##先向上游请求真实的dns响应
-      - matches: switch3 'A'                        #兼容模式；定义: sub_config/switch.yaml:27
+      - matches: flag core_mode=compat              #兼容模式；定义: sub_config/flags.yaml
         exec: $sequence_local                       #表外域名先发到国内查第1次；定义: sub_config/forward_1.yaml:112
-      - matches: switch3 'B'                        #安全模式；定义: sub_config/switch.yaml:27
+      - matches: flag core_mode=safe                #安全模式；定义: sub_config/flags.yaml
         exec: $sequence_google_node                 #表外域名先带ecs发到8888查第1次；定义: sub_config/forward_nocn_ecs.yaml:12
       - matches:
-        - switch3 'B'                               #安全模式；定义: sub_config/switch.yaml:27
+        - flag core_mode=safe                       #安全模式；定义: sub_config/flags.yaml
         - "!resp_ip 2000::/3"                       #还是没有IP
         exec: $sequence_local                       #安全模式国内dns查第2次；定义: sub_config/forward_1.yaml:112
 ##再根据响应找出确实无IP的域名
@@ -233,12 +233,12 @@ plugins:
         exec: exit
 #列表外域名处理，后面默认都是fast_mark 17的逻辑
 ##先向上游请求真实的dns响应
-      - matches: switch3 'A'                        #兼容模式；定义: sub_config/switch.yaml:27
+      - matches: flag core_mode=compat              #兼容模式；定义: sub_config/flags.yaml
         exec: $sequence_local                       #表外域名先发到国内查第1次；定义: sub_config/forward_1.yaml:112
-      - matches: switch3 'B'                        #安全模式；定义: sub_config/switch.yaml:27
+      - matches: flag core_mode=safe                #安全模式；定义: sub_config/flags.yaml
         exec: $sequence_google_node                 #表外域名先带ecs发到8888查第1次；定义: sub_config/forward_nocn_ecs.yaml:12
       - matches:
-        - switch3 'B'                               #安全模式；定义: sub_config/switch.yaml:27
+        - flag core_mode=safe                       #安全模式；定义: sub_config/flags.yaml
         - "!resp_ip 2000::/3"                       #还是没有IP
         exec: $sequence_local                       #安全模式国内dns查第2次；定义: sub_config/forward_1.yaml:112
 ##再根据响应找出确实无IP的域名

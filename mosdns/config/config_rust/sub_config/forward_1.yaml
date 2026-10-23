@@ -25,7 +25,7 @@ plugins:
     type: sequence
     args:
       - exec: flow_setter sequence=sequence_local_exit upstream=domestic
-      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cn                             #定义: sub_config/cache.yaml:27
       - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
@@ -35,7 +35,7 @@ plugins:
     type: sequence
     args:
       - exec: flow_setter sequence=sequence_local_exit_requery upstream=domestic
-      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cn                             #定义: sub_config/cache.yaml:27
       - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
@@ -54,7 +54,7 @@ plugins:
     type: sequence
     args:
       - exec: flow_setter sequence=sequence_local_addlist_exit upstream=domestic
-      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cn                             #定义: sub_config/cache.yaml:27
       - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
@@ -65,7 +65,7 @@ plugins:
     type: sequence
     args:
       - exec: flow_setter sequence=sequence_local_addlist_exit_v6 upstream=domestic
-      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cn                             #定义: sub_config/cache.yaml:27
       - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
@@ -77,7 +77,7 @@ plugins:
     type: sequence
     args:
       - exec: flow_setter sequence=sequence_local_addlist_exit_requery upstream=domestic
-      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cn                             #定义: sub_config/cache.yaml:27
       - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
@@ -108,7 +108,7 @@ plugins:
     type: sequence
     args:
       - exec: flow_setter sequence=sequence_local upstream=domestic
-      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cn                             #定义: sub_config/cache.yaml:27
       - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
@@ -125,7 +125,7 @@ plugins:
   - tag: sequence_local_fake
     type: sequence
     args:
-      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
       - matches: fast_mark 10
         exec:
@@ -140,7 +140,7 @@ plugins:
   - tag: sequence_local_fake_clashmi
     type: sequence
     args:
-      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
       - matches: fast_mark 10
         exec:
@@ -157,7 +157,7 @@ plugins:
     type: sequence
     args:
       - exec: flow_setter sequence=sequence_local_fake_pure upstream=cnfake
-      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
       - exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
       - exec: ttl 5
@@ -167,7 +167,7 @@ plugins:
     type: sequence
     args:
       - exec: flow_setter sequence=sequence_localfake_addlist_exit upstream=cnfake
-      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
       - exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
       - exec: ttl 5
@@ -201,7 +201,7 @@ plugins:
           - exit
       - exec: drop_resp
       - exec: flow_setter sequence=sequence_localfake_addlist_exit_requery upstream=cnfake
-      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
       - exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
       - exec: ttl 5
@@ -213,7 +213,7 @@ plugins:
     type: sequence
     args:
       - exec: flow_setter sequence=sequence_localfake_exit upstream=cnfake
-      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
       - exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
       - exec: ttl 5
@@ -234,7 +234,7 @@ plugins:
       - exec: $learn_nov6_empty                     #AAAA 无全球单播 IPv6 且 rcode 为 0/3：记忆无V6；定义: sub_config/route_learner.yaml
       - exec: drop_resp
       - exec: flow_setter sequence=sequence_localfake_exit_requery upstream=cnfake
-      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
       - exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
       - exec: ttl 5
@@ -245,7 +245,7 @@ plugins:
     type: sequence
     args:
       - exec: flow_setter sequence=sequence_google upstream=foreign
-      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_google                         #定义: sub_config/cache.yaml:36
       - exec: $foreign                              #定义: sub_config/forward_nocn.yaml:4
       - exec: cname_remover
@@ -255,7 +255,7 @@ plugins:
     type: sequence
     args:
       - exec: flow_setter sequence=sequence_google_exit upstream=foreign
-      - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
+      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_google                         #定义: sub_config/cache.yaml:36
       - exec: $foreign                              #定义: sub_config/forward_nocn.yaml:4
       - exec: cname_remover
@@ -301,9 +301,9 @@ plugins:
   - tag: sequence_fakeip_addlist_exit
     type: sequence
     args:
-      - matches: switch17 'A'
+      - matches: flag dns_mode=fakeip
         exec: $sequence_proxy_fakeip_addlist_exit
-      - matches: switch17 'B'
+      - matches: flag dns_mode=realip
         exec: $sequence_proxy_realip_addlist_exit
       - exec: exit
 
@@ -311,9 +311,9 @@ plugins:
   - tag: sequence_fakeip_exit
     type: sequence
     args:
-      - matches: switch17 'A'
+      - matches: flag dns_mode=fakeip
         exec: $sequence_proxy_fakeip_exit
-      - matches: switch17 'B'
+      - matches: flag dns_mode=realip
         exec: $sequence_proxy_realip_exit
       - exec: exit
 

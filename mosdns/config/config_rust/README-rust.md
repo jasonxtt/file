@@ -12,6 +12,7 @@
 | ECS 地址 | 同上 `client_ecs`（`ecs_address`） | 同上 | 同上 |
 | 各组上游列表、是否走代理 | 各 `aliapi` 的 `upstreams`（条目 `use_proxy`） | 上游设置 | 同上 |
 | 域名生成开关 | `route_learner` 各类别的 `enabled` | 系统设置 → 域名生成 | 同上 |
+| 功能开关（运行模式、屏蔽、缓存、客户端分流等） | `sub_config/flags.yaml` 的 `feature_flag` | （UI 重做后按声明自动生成） | 同上（`flags` 段） |
 
 - `webinfo/settings.json` 只保存**与本包 YAML 不同**的值；删除该文件即回到本包默认。修改在 WebUI 保存后**立即生效**，不需要重启。
 - **代理默认为空 = 不使用代理**（与 `config_all` 在 Go 下默认的“全局 socks5 为空”相同）。填写 `main_proxy` 后，所有规则源下载以及
@@ -61,6 +62,13 @@
 `domain_output.yaml` 只剩 `top_domains`（访问排行，只计数）。类别 tag（`my_realiplist` 等）、标签字符串与 mark（2/3/4/11/12）都没变，后续流程的 `fast_mark` 判断没变。
 `config_custom.yaml` 的 `sequence_requery`（只有刷新分流的服务器用它）不再因 `fast_mark 2/3`（记忆无V4/无V6）提前空答：刷新要重新探测这些名字，规则才能再确认它们、刷新到期时间；普通查询入口 `sequence_6666` 不变。
 `gen/` 下旧的学习名单文件（`*list.txt`、`*rule.txt`）不再被读取，已部署的机器上可以手动删除。详见 mosdns-rust 的 `docs/rust/contracts/native-route-learner.md`。
+
+### 功能开关（config schema 3）：`sub_config/flags.yaml`（新，取代 `switch.yaml`）、`config_custom.yaml`、`forward_1.yaml`、`forward_nocn.yaml`、`process_v4.yaml`、`process_v6.yaml`
+原来的 `switch1`–`switch17`（值 `A`/`B`，存 `rule/switchN.txt`）改成 13 个具名开关（`feature_flag`）：`core_mode`（原 3）、`dns_mode`（17）、`cn_fakeip`（9，开 = 旧 B）、`prefer_v4`（8）、`ddns_foreign`（16）、
+`block_empty` 与 `block_blocklist`（原 1 拆成两个）、`block_qtypes`（5）、`block_ads`（7）、`block_aaaa`（6）、`lazy_cache`（4）、`full_cache`（13）、`client_routing`（2 与 12 合并为三选一）；10/11/14/15 没有引用，删除。
+流程里的 82 处 `switchN 'X'` 逐一换成 `flag 名字` / `flag 名字=选项` / `"!flag 名字"`，规则条数、顺序与所在流程都没变；默认值与本包原来的 `rule/switchN.txt` 相同。
+开关的值存 `webinfo/settings.json` 的 `flags` 段（只存与默认不同的）；首次以新程序正常启动时从 `rule/switchN.txt` 迁移一次（在线更新试运行期间不写），旧文件保留但不再读取。
+`rule/switchN.txt` 样例文件保留（新安装时它们就是迁移来源，取值等于默认）。详见 mosdns-rust 的 `docs/rust/contracts/native-feature-flags.md`。
 
 ### `webinfo/`
 删除 `upstream_overrides.json` 与 `config_overrides.json`（原生不读取，保留会让人误以为它们仍然生效）。其余文件不变。
