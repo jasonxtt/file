@@ -1,0 +1,90 @@
+# 路由学习：根据上游应答记住每个域名的路由事实，下次直接按记忆分流（取代原 domain_output 学习名单）。
+#
+# - route_learner 是存储本体：每个类别一张表，每条记录从“最后一次被确认”起按类别的 ttl 单独过期，
+#   容量有上限（超出淘汰最久未确认的），状态写在 gen/route_learner.json（有变化才写：每 write_interval 秒一次，
+#   退出、重启、在线更新前也写；热应用在内存里交接，不落盘）。
+# - 类别 tag 沿用旧名字：/plugins/<tag>/show|save|flush 与系统设置里的“域名生成”开关都按这些 tag。
+#   类别顺序就是 domain_set 里标签的先后顺序，不要调整。
+# - 学习结果在 target_mapper 求值时并入：学习层标签在前、mark 位或、命中后不设默认 mark 17；
+#   后续流程仍用 fast_mark 2/3/4/11/12 判断，静态名单与学习结果的优先关系由流程里 fast_mark 的判断顺序决定。
+# - route_learn 是学习规则：流程里执行到 `exec: $规则tag` 时，when 全部成立（语法同 matches）才把当前查询名记入 learn 里的类别。
+#   规则 tag 会作为“原因”写进记录。已有且未过期的记录再次触发 = 再确认一次（刷新最近确认时间）。
+# - 记忆无V4 与特殊域名只在刷新流程（sequence_requery）里学到，所以 ttl 取 8 天（requery 周期 7 天 + 1 天余量）。
+plugins:
+  - tag: route_learner
+    type: route_learner
+    args:
+      target_mapper: unified_matcher1          #定义: sub_config/rule_set.yaml
+      file: gen/route_learner.json
+      write_interval: 21600                    #秒；6 小时
+      max_entries: 20000                       #每类默认容量
+      categories:
+        - tag: my_sv4list                      #国内 dns 无解析、国外 dns 有解析的特殊 v4 域名
+          mark: 4
+          label: 特殊域名
+          source: my_sv4rule                   #审计 matched_rule_source 里显示的名字（沿用旧规则 tag）
+          ttl: 691200                          #8 天
+        - tag: my_realiplist                   #记忆直连
+          mark: 11
+          label: 记忆直连
+          source: my_realiprule
+          ttl: 604800                          #7 天
+        - tag: my_fakeiplist                   #记忆代理
+          mark: 12
+          label: 记忆代理
+          source: my_fakeiprule
+          ttl: 604800
+        - tag: my_nov6list                     #记忆无 V6（负向，更短）
+          mark: 3
+          label: 记忆无V6
+          source: my_nov6rule
+          ttl: 86400                           #1 天
+        - tag: my_nov4list                     #记忆无 V4（只在刷新流程里学到）
+          mark: 2
+          label: 记忆无V4
+          source: my_nov4rule
+          ttl: 691200
+
+  # 静态名单（白名单/订阅直连）里的名字，向国内应答后记为直连（速度：一次 mapper 匹配拿到多个 mark）
+  - tag: learn_direct_listed
+    type: route_learn
+    args: {learner: route_learner, learn: [my_realiplist]}
+
+  # 探测应答含直连 IP 或国内 IP：记为直连
+  - tag: learn_direct_probed
+    type: route_learn
+    args: {learner: route_learner, learn: [my_realiplist]}
+
+  # 代理决定（灰名单/订阅代理/探测到非国内 IP）：记为代理
+  - tag: learn_proxy
+    type: route_learn
+    args: {learner: route_learner, learn: [my_fakeiplist]}
+
+  # 刷新流程里国外应答含非国内 IPv4（条件在流程里，块内还有 drop_resp、再问 nocnfake、exit）：记为代理并记为特殊域名
+  - tag: learn_proxy_requery
+    type: route_learn
+    args: {learner: route_learner, learn: [my_fakeiplist, my_sv4list]}
+
+  # 刷新流程里 fast_mark 4（首轮无 IP，或该名字已是特殊域名）且应答有 IPv4：特殊域名
+  - tag: learn_sv4_seen
+    type: route_learn
+    args:
+      learner: route_learner
+      learn: [my_sv4list]
+      when: ["fast_mark 4", "resp_ip 0.0.0.0/0"]
+
+  # A 应答 rcode 0/3 且没有 IPv4：记忆无 V4（SERVFAIL 等不学）
+  - tag: learn_nov4_empty
+    type: route_learn
+    args:
+      learner: route_learner
+      learn: [my_nov4list]
+      when: ["qtype 1", "rcode 0 3", "!resp_ip 0.0.0.0/0"]
+
+  # AAAA 应答 rcode 0/3 且没有全球单播 IPv6：记忆无 V6（SERVFAIL 等不学）
+  - tag: learn_nov6_empty
+    type: route_learn
+    args:
+      learner: route_learner
+      learn: [my_nov6list]
+      when: ["qtype 28", "rcode 0 3", "!resp_ip 2000::/3"]

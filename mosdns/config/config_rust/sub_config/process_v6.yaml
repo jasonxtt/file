@@ -48,7 +48,7 @@ plugins:
         exec: fast_mark 20                          #做出标记
       - matches: fast_mark 20                       #上游dns未返回ip
         exec:
-          - $my_nov6list                            #加入自生成无v4域名清单
+          - $learn_nov6_empty                       #记忆无V6（已含 rcode 0/3 与无全球单播 IPv6 判断）
           - drop_resp                               #避免cname传递
           - reject 0                                #此处仅跳出当前exec隐藏子序列并设置rcode
       - matches: fast_mark 20
@@ -113,7 +113,7 @@ plugins:
         exec: fast_mark 20                          #做出标记
       - matches: fast_mark 20                       #上游dns未返回ip
         exec:
-          - $my_nov6list                            #加入自生成无v4域名清单
+          - $learn_nov6_empty                       #记忆无V6（已含 rcode 0/3 与无全球单播 IPv6 判断）
           - drop_resp                               #避免cname传递
           - reject 0                                #此处仅跳出当前exec隐藏子序列并设置rcode
       - matches: fast_mark 20
@@ -183,7 +183,7 @@ plugins:
         exec: fast_mark 20                          #做出标记
       - matches: fast_mark 20                       #上游dns未返回ip
         exec:
-          - $my_nov6list                            #加入自生成无v4域名清单
+          - $learn_nov6_empty                       #记忆无V6（已含 rcode 0/3 与无全球单播 IPv6 判断）
           - drop_resp                               #避免cname传递
           - reject 0                                #此处仅跳出当前exec隐藏子序列并设置rcode
       - matches: fast_mark 20
@@ -248,7 +248,7 @@ plugins:
         exec: fast_mark 20                          #做出标记
       - matches: fast_mark 20                       #上游dns未返回ip
         exec:
-          - $my_nov6list                            #加入自生成无v4域名清单
+          - $learn_nov6_empty                       #记忆无V6（已含 rcode 0/3 与无全球单播 IPv6 判断）
           - drop_resp                               #避免cname传递
           - reject 0                                #此处仅跳出当前exec隐藏子序列并设置rcode
       - matches: fast_mark 20

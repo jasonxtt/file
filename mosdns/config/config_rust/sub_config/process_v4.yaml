@@ -178,17 +178,14 @@ plugins:
       - matches: "!resp_ip 0.0.0.0/0"               #国内dns/国外dns+ecs无IP的情况
         exec: $sequence_google                      #requery再查；定义: sub_config/forward_1.yaml:246
 ##再根据响应找出确实无IP的域名
-      - matches:
-        - fast_mark 4
-        - "resp_ip 0.0.0.0/0"                       #国内dns/国外dns+ecs无IP的情况
-        exec: $my_sv4list                           #生成sv4列表供查阅，后面会加入其它列表中；定义: sub_config/domain_output.yaml:3
+      - exec: $learn_sv4_seen                       #fast_mark 4 且应答有 IPv4：特殊域名；定义: sub_config/route_learner.yaml
       - matches:
         - "rcode 0 3"
         - "!resp_ip 0.0.0.0/0"
         exec: fast_mark 20                          #做出标记
       - matches: fast_mark 20                       #上游dns未返回ip
         exec:
-          - $my_nov4list                            #加入自生成无v4域名清单
+          - $learn_nov4_empty                       #记忆无V4（已含 rcode 0/3 与无 IPv4 判断）
           - drop_resp                               #避免cname传递
           - reject 0                                #此处仅跳出当前exec隐藏子序列并设置rcode
       - matches: fast_mark 20
@@ -252,17 +249,14 @@ plugins:
       - matches: "!resp_ip 0.0.0.0/0"               #国内dns/国外dns+ecs无IP的情况
         exec: $sequence_google                      #requery再查；定义: sub_config/forward_1.yaml:246
 ##再根据响应找出确实无IP的域名
-      - matches:
-        - fast_mark 4
-        - "resp_ip 0.0.0.0/0"                       #国内dns/国外dns+ecs无IP的情况
-        exec: $my_sv4list                           #生成sv4列表；定义: sub_config/domain_output.yaml:3
+      - exec: $learn_sv4_seen                       #fast_mark 4 且应答有 IPv4：特殊域名；定义: sub_config/route_learner.yaml
       - matches:
         - "rcode 0 3"
         - "!resp_ip 0.0.0.0/0"
         exec: fast_mark 20                          #做出标记
       - matches: fast_mark 20                       #上游dns未返回ip
         exec:
-          - $my_nov4list                            #加入自生成无v4域名清单
+          - $learn_nov4_empty                       #记忆无V4（已含 rcode 0/3 与无 IPv4 判断）
           - drop_resp                               #避免cname传递
           - reject 0                                #此处仅跳出当前exec隐藏子序列并设置rcode
       - matches: fast_mark 20

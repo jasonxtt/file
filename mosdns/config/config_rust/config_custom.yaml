@@ -11,6 +11,7 @@ include:
   - "sub_config/settings.yaml"                  #可调整项对象（代理、ECS），原生版新增
   - "sub_config/adguard.yaml"                   #Adguard插件
   - "sub_config/domain_output.yaml"             #域名规则生成输出插件定义
+  - "sub_config/route_learner.yaml"             #路由学习（记忆直连/代理/无V4/无V6/特殊域名）
   - "sub_config/rule_set.yaml"                  #数据插件定义
   - "sub_config/cache.yaml"                     #缓存插件定义
   - "sub_config/forward_local.yaml"             #带过期缓存的内部使用国内dns服务器
@@ -98,7 +99,7 @@ plugins:
         - switch3 'B'                           #非泄露模式；定义: sub_config/switch.yaml:27
         - switch13 'A'                          #缓存开关打开；定义: sub_config/switch.yaml:41
         exec: $cache_all_noleak                 #定义: sub_config/cache.yaml:15
-      - exec: $top_domains                      #定义: sub_config/domain_output.yaml:16
+      - exec: $top_domains                      #定义: sub_config/domain_output.yaml:3
       - matches:
         - qtype 1                               #A请求
         - switch9 'A'                           #cnfake关闭；定义: sub_config/switch.yaml:68
@@ -152,16 +153,7 @@ plugins:
       - exec: $special_upstream_matcher         #匹配专属分流组并设置 special mark；定义: sub_config/special_groups.yaml
       - matches: switch8 'A'                    #IPv4优先：存在A记录时抑制AAAA结果；定义: sub_config/switch.yaml:74
         exec: prefer_ipv4
-      - matches:                                #屏蔽没有v4地址的域名
-        - fast_mark 2
-        - qtype 1
-        - switch1 'A'                           #定义: sub_config/switch.yaml:6
-        exec: reject 0
-      - matches:                                #屏蔽没有v6地址的域名
-        - fast_mark 3
-        - qtype 28
-        - switch1 'A'                           #定义: sub_config/switch.yaml:6
-        exec: reject 0
+#刷新分流时不因记忆无V4/无V6而提前空答：要重新探测，才能再确认（刷新记录的最近确认时间）这两类记录
       - matches:                                #屏蔽黑名单域名
         - fast_mark 1
         - switch1 'A'                           #定义: sub_config/switch.yaml:6

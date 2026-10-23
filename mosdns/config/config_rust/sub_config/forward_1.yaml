@@ -45,14 +45,8 @@ plugins:
         exec:
           - flow_setter sequence=sequence_local_exit_requery upstream=foreign
           - $foreign                                #定义: sub_config/forward_nocn.yaml:4
-      - matches:
-        - qtype 1                                   #A请求
-        - "!resp_ip 0.0.0.0/0"
-        exec: $my_nov4list                          #定义: sub_config/domain_output.yaml:69
-      - matches:
-        - qtype 28                                  #AAAA请求
-        - "!resp_ip 2000::/3"
-        exec: $my_nov6list                          #定义: sub_config/domain_output.yaml:54
+      - exec: $learn_nov4_empty                     #A 无 IPv4 且 rcode 为 0/3：记忆无V4；定义: sub_config/route_learner.yaml
+      - exec: $learn_nov6_empty                     #AAAA 无全球单播 IPv6 且 rcode 为 0/3：记忆无V6；定义: sub_config/route_learner.yaml
       - exec: exit
 
 #缓存序列-国内域名realip
@@ -64,8 +58,7 @@ plugins:
         exec: $cache_cn                             #定义: sub_config/cache.yaml:27
       - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
-      - matches: "!fast_mark 11"                    #不在记忆直连和特殊域名列表中
-        exec: $my_realiplist                        #加入自生成国内域名列表；定义: sub_config/domain_output.yaml:25
+      - exec: $learn_direct_listed                  #记忆直连（静态名单的名字）；定义: sub_config/route_learner.yaml
       - exec: exit
 
   - tag: sequence_local_addlist_exit_v6
@@ -76,12 +69,8 @@ plugins:
         exec: $cache_cn                             #定义: sub_config/cache.yaml:27
       - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
-      - matches: "!fast_mark 11"                    #不在记忆直连和特殊域名列表中
-        exec: $my_realiplist                        #加入自生成国内域名列表；定义: sub_config/domain_output.yaml:25
-      - matches:
-        - "!fast_mark 3"                            #不在无V6清单中
-        - "!resp_ip 2000::/3"
-        exec: $my_nov6list                          #定义: sub_config/domain_output.yaml:54
+      - exec: $learn_direct_listed                  #记忆直连（静态名单的名字）；定义: sub_config/route_learner.yaml
+      - exec: $learn_nov6_empty                     #AAAA 无全球单播 IPv6 且 rcode 为 0/3：记忆无V6；定义: sub_config/route_learner.yaml
       - exec: exit
 
   - tag: sequence_local_addlist_exit_requery
@@ -92,10 +81,7 @@ plugins:
         exec: $cache_cn                             #定义: sub_config/cache.yaml:27
       - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
-      - matches:
-        - qtype 28                                  #AAAA请求
-        - "!resp_ip 2000::/3"
-        exec: $my_nov6list                          #定义: sub_config/domain_output.yaml:54
+      - exec: $learn_nov6_empty                     #AAAA 无全球单播 IPv6 且 rcode 为 0/3：记忆无V6；定义: sub_config/route_learner.yaml
       - matches:
         - qtype 1                                   #A请求
         - "!resp_ip 0.0.0.0/0"
@@ -104,23 +90,18 @@ plugins:
         exec:
           - flow_setter sequence=sequence_local_addlist_exit_requery upstream=foreign
           - $foreign                                #定义: sub_config/forward_nocn.yaml:4
-      - matches:
-        - qtype 1                                   #A请求
-        - "!resp_ip 0.0.0.0/0"
-        exec: $my_nov4list                          #定义: sub_config/domain_output.yaml:69
+      - exec: $learn_nov4_empty                     #A 无 IPv4 且 rcode 为 0/3：记忆无V4；定义: sub_config/route_learner.yaml
       - matches:
         - fast_mark 19                              #A请求
         - "resp_ip 0.0.0.0/0"                       #有IP
         - "!resp_ip $geoip_cn"                      #但是没有cn ip
         exec:
-          - $my_fakeiplist
-          - $my_sv4list
+          - $learn_proxy_requery                    #记忆代理 + 特殊域名；定义: sub_config/route_learner.yaml
           - drop_resp
           - flow_setter sequence=sequence_local_addlist_exit_requery upstream=nocnfake
           - $nocnfake
           - exit
-      - matches: "!fast_mark 11"                    #不在记忆直连和特殊域名列表中
-        exec: $my_realiplist                        #加入自生成国内域名列表；定义: sub_config/domain_output.yaml:25
+      - exec: $learn_direct_listed                  #记忆直连（静态名单的名字）；定义: sub_config/route_learner.yaml
       - exec: exit
 
   - tag: sequence_local
@@ -137,8 +118,7 @@ plugins:
   - tag: sequence_addrealiplist_exit
     type: sequence
     args:
-      - matches: "!fast_mark 11"                    #不在记忆直连和特殊域名列表中
-        exec: $my_realiplist                        #加入自生成国内域名列表；定义: sub_config/domain_output.yaml:25
+      - exec: $learn_direct_probed                  #探测应答含直连 IP/国内 IP：记忆直连；定义: sub_config/route_learner.yaml
       - exec: exit
 
 #向mihomo请求国内的fakeip序列，重新向国内dns请求
@@ -191,8 +171,7 @@ plugins:
         exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
       - exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
       - exec: ttl 5
-      - matches: "!fast_mark 11"                    #不在记忆直连和特殊域名列表中
-        exec: $my_realiplist                        #加入自生成国内域名列表；定义: sub_config/domain_output.yaml:25
+      - exec: $learn_direct_listed                  #记忆直连（静态名单的名字）；定义: sub_config/route_learner.yaml
       - exec: exit
 
   - tag: sequence_localfake_addlist_exit_requery
@@ -200,10 +179,7 @@ plugins:
     args:
       - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
       - exec: cname_remover
-      - matches:
-        - qtype 28                                  #AAAA请求
-        - "!resp_ip 2000::/3"
-        exec: $my_nov6list                          #定义: sub_config/domain_output.yaml:54
+      - exec: $learn_nov6_empty                     #AAAA 无全球单播 IPv6 且 rcode 为 0/3：记忆无V6；定义: sub_config/route_learner.yaml
       - matches:
         - qtype 1                                   #A请求
         - "!resp_ip 0.0.0.0/0"
@@ -212,17 +188,13 @@ plugins:
         exec:
           - flow_setter sequence=sequence_localfake_addlist_exit_requery upstream=foreign
           - $foreign                                #定义: sub_config/forward_nocn.yaml:4
-      - matches:
-        - qtype 1                                   #A请求
-        - "!resp_ip 0.0.0.0/0"
-        exec: $my_nov4list                          #定义: sub_config/domain_output.yaml:69
+      - exec: $learn_nov4_empty                     #A 无 IPv4 且 rcode 为 0/3：记忆无V4；定义: sub_config/route_learner.yaml
       - matches:
         - fast_mark 19                              #A请求
         - "resp_ip 0.0.0.0/0"                       #有IP
         - "!resp_ip $geoip_cn"                      #但是没有cn ip
         exec:
-          - $my_fakeiplist
-          - $my_sv4list
+          - $learn_proxy_requery                    #记忆代理 + 特殊域名；定义: sub_config/route_learner.yaml
           - drop_resp
           - flow_setter sequence=sequence_localfake_addlist_exit_requery upstream=nocnfake
           - $nocnfake
@@ -233,8 +205,7 @@ plugins:
         exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
       - exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
       - exec: ttl 5
-      - matches: "!fast_mark 11"                    #不在记忆直连和特殊域名列表中
-        exec: $my_realiplist                        #加入自生成国内域名列表；定义: sub_config/domain_output.yaml:25
+      - exec: $learn_direct_listed                  #记忆直连（静态名单的名字）；定义: sub_config/route_learner.yaml
       - exec: exit
 
 #向mihomo请求国内的fakeip序列并结束
@@ -259,14 +230,8 @@ plugins:
         exec:
           - flow_setter sequence=sequence_localfake_exit_requery upstream=foreign
           - $foreign                                #定义: sub_config/forward_nocn.yaml:4
-      - matches:
-        - qtype 1                                   #A请求
-        - "!resp_ip 0.0.0.0/0"
-        exec: $my_nov4list                          #定义: sub_config/domain_output.yaml:69
-      - matches:
-        - qtype 28                                  #AAAA请求
-        - "!resp_ip 2000::/3"
-        exec: $my_nov6list                          #定义: sub_config/domain_output.yaml:54
+      - exec: $learn_nov4_empty                     #A 无 IPv4 且 rcode 为 0/3：记忆无V4；定义: sub_config/route_learner.yaml
+      - exec: $learn_nov6_empty                     #AAAA 无全球单播 IPv6 且 rcode 为 0/3：记忆无V6；定义: sub_config/route_learner.yaml
       - exec: drop_resp
       - exec: flow_setter sequence=sequence_localfake_exit_requery upstream=cnfake
       - matches: switch4 'A'                        #定义: sub_config/switch.yaml:35
@@ -302,8 +267,7 @@ plugins:
     args:
       - exec: flow_setter sequence=sequence_proxy_fakeip_addlist_exit upstream=nocnfake
       - exec: $nocnfake                             #定义: sub_config/forward_1.yaml:4
-      - matches: "!fast_mark 12"
-        exec: $my_fakeiplist                        #继续作为记忆代理域名列表
+      - exec: $learn_proxy                          #记忆代理；定义: sub_config/route_learner.yaml
       - exec: exit
 
 #FakeIP 分流：代理域名返回 FakeIP
@@ -321,8 +285,7 @@ plugins:
       - exec: flow_setter sequence=sequence_proxy_realip_addlist_exit upstream=foreign
       - exec: $foreign
       - exec: cname_remover
-      - matches: "!fast_mark 12"
-        exec: $my_fakeiplist                        #继续作为记忆代理域名列表
+      - exec: $learn_proxy                          #记忆代理；定义: sub_config/route_learner.yaml
       - exec: exit
 
 #RealIP 分流：代理域名返回国外真实 IP
