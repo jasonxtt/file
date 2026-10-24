@@ -16,8 +16,10 @@ if [[ -e "${SOURCE_DIR}/ui/main" ]]; then
   echo "config_rust/ui/main must not exist (the WebUI comes from rtdns-webui.tar.gz)" >&2
   exit 1
 fi
+# List once: `tar | grep -q` under pipefail fails when grep exits early and tar gets SIGPIPE.
+WEBUI_ENTRIES="$(tar -tzf "${WEBUI}")"
 for required in index.html ui-manifest.json; do
-  if ! tar -tzf "${WEBUI}" | grep -qx "${required}"; then
+  if ! grep -qx "${required}" <<<"${WEBUI_ENTRIES}"; then
     echo "${WEBUI} has no top-level ${required}" >&2
     exit 1
   fi
