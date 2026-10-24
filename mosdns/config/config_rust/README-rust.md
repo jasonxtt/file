@@ -74,7 +74,21 @@
 自己新增开关时需要同样联动，在它的 `args` 里写 `requery_on_change: true`。
 
 ### 不再附带 `ui/ilog/`
-本包不再附带旧的 `ui/ilog/` 日志页（rtdns 内置的 WebUI 在 `/`，不需要它）。包只管理配置，不管理已部署机器上的 `ui/` 目录：已有的 `ui/ilog/` 不会被动到，也不再被更新，不用时可以手动删除。
+本包不再附带旧的 `ui/ilog/` 日志页（rtdns 的 WebUI 在 `/`，不需要它）。配置包（`config_rust_up.zip`）只管理配置，不管理已部署机器上的 `ui/` 目录：已有的 `ui/ilog/` 不会被动到，也不再被更新，不用时可以手动删除。
+
+### 上游组随开关显示/隐藏、开关归属、刷新修正（config schema 4，rtdns v0.4.0）：`forward_1.yaml`、`flags.yaml`
+- `aliapi` 新增可选参数 `show_when`（只影响 WebUI，不影响解析）：条件写法与流程里的开关匹配相同（`flag 名字`、`flag 名字=选项`、`"!flag 名字"`，列表表示全部满足），写错会在加载时报错。
+  条件不成立时，该组在上游设置里默认隐藏（可点“显示未生效的组”），概览的上游统计里不显示。本包：`cnfake` → `show_when: flag cn_fakeip`；`nocnfake` → `show_when: flag dns_mode=fakeip`。
+  注意：**3099 端口（clashmi 回家）不看 `cn_fakeip`，始终使用 `cnfake`**；`cn_fakeip` 关时界面不显示 `cnfake`，但 3099 端口照常用它。`domestic`、`foreign`、`foreignecs`（4444 端口一直在用）始终显示。
+- 一个上游组至少要保留一个启用的上游：全部停用或删掉最后一个会被拒绝并说明原因；不想用某个组，关闭使用它的开关即可。
+- `ddns_foreign`（DDNS 优先国外解析）的 `section` 从 `upstream` 改为 `mode`，在 WebUI 的“运行模式”里。
+- 刷新（requery）流程 `sequence_local_addlist_exit_requery`、`sequence_localfake_addlist_exit_requery` 里“国外应答含非国内 IP”的分支改为按 `dns_mode` 走：FakeIP 分流照旧丢弃应答改问 sing-box（`nocnfake`）；
+  RealIP 分流保留国外真实 IP、不再问 sing-box。原来在 RealIP 模式下刷新会把 FakeIP 写进与客户端共用的缓存（`cache_all` / `cache_all_noleak`），客户端随后拿到 FakeIP。
+
+### 全新安装包 `config_rust.zip` 带 WebUI
+rtdns 从 v0.4.0 起不再把 WebUI 编进程序：WebUI 是 `<配置根>/ui/main/`（由 `/` 提供），随在线更新与程序一起替换（只在该目录已存在时）。
+`config_rust.zip` 由 `../build_config_rust_zip.sh <rtdns-webui.tar.gz>` 生成：本目录内容 + 同版本 rtdns Release 的 `rtdns-webui.tar.gz` 解到 `ui/main/`。本目录里不放 WebUI 文件。
+不要 WebUI（纯后端）就删掉 `ui/main/`，`/` 会显示“没有安装 WebUI”，接口照常。
 
 ### `webinfo/`
 删除 `upstream_overrides.json` 与 `config_overrides.json`（原生不读取，保留会让人误以为它们仍然生效）。其余文件不变。

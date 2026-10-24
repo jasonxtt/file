@@ -4,6 +4,7 @@ plugins:
   - tag: nocnfake
     type: aliapi
     args:
+      show_when: flag dns_mode=fakeip           #只影响 WebUI：仅 FakeIP 分流时在上游设置与概览显示此组
       concurrent: 1
       proxy: $main_proxy                        #本组条目可用 use_proxy: true 选择走代理（默认都不走）
       upstreams:
@@ -14,6 +15,7 @@ plugins:
   - tag: cnfake
     type: aliapi
     args:
+      show_when: flag cn_fakeip                 #只影响 WebUI：仅「国内域名 FakeIP」开启时显示此组；3099 端口（clashmi）不看此开关，始终使用 cnfake
       concurrent: 1
       proxy: $main_proxy                        #本组条目可用 use_proxy: true 选择走代理（默认都不走）
       upstreams:
@@ -95,11 +97,20 @@ plugins:
         - fast_mark 19                              #A请求
         - "resp_ip 0.0.0.0/0"                       #有IP
         - "!resp_ip $geoip_cn"                      #但是没有cn ip
+        - flag dns_mode=fakeip                      #FakeIP 分流：改问 sing-box 要 FakeIP；定义: sub_config/flags.yaml
         exec:
           - $learn_proxy_requery                    #记忆代理 + 特殊域名；定义: sub_config/route_learner.yaml
           - drop_resp
           - flow_setter sequence=sequence_local_addlist_exit_requery upstream=nocnfake
           - $nocnfake
+          - exit
+      - matches:
+        - fast_mark 19                              #A请求
+        - "resp_ip 0.0.0.0/0"                       #有IP
+        - "!resp_ip $geoip_cn"                      #但是没有cn ip
+        - flag dns_mode=realip                      #RealIP 分流：保留国外真实 IP，不问 sing-box（否则 FakeIP 会进共用缓存）
+        exec:
+          - $learn_proxy_requery                    #记忆代理 + 特殊域名；定义: sub_config/route_learner.yaml
           - exit
       - exec: $learn_direct_listed                  #记忆直连（静态名单的名字）；定义: sub_config/route_learner.yaml
       - exec: exit
@@ -193,11 +204,20 @@ plugins:
         - fast_mark 19                              #A请求
         - "resp_ip 0.0.0.0/0"                       #有IP
         - "!resp_ip $geoip_cn"                      #但是没有cn ip
+        - flag dns_mode=fakeip                      #FakeIP 分流：改问 sing-box 要 FakeIP；定义: sub_config/flags.yaml
         exec:
           - $learn_proxy_requery                    #记忆代理 + 特殊域名；定义: sub_config/route_learner.yaml
           - drop_resp
           - flow_setter sequence=sequence_localfake_addlist_exit_requery upstream=nocnfake
           - $nocnfake
+          - exit
+      - matches:
+        - fast_mark 19                              #A请求
+        - "resp_ip 0.0.0.0/0"                       #有IP
+        - "!resp_ip $geoip_cn"                      #但是没有cn ip
+        - flag dns_mode=realip                      #RealIP 分流：保留国外真实 IP，不问 sing-box（否则 FakeIP 会进共用缓存）
+        exec:
+          - $learn_proxy_requery                    #记忆代理 + 特殊域名；定义: sub_config/route_learner.yaml
           - exit
       - exec: drop_resp
       - exec: flow_setter sequence=sequence_localfake_addlist_exit_requery upstream=cnfake

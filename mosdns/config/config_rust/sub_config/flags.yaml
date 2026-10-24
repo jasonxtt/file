@@ -64,7 +64,7 @@ plugins:
     args:
       label: DDNS 优先国外解析
       description: DDNS 名单内的域名优先用国外上游解析（无缓存，国外失败回退国内）。
-      section: upstream
+      section: mode
       kind: bool
       default: false
 
