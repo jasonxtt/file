@@ -3,9 +3,11 @@ plugins:
 #流程里用 `flag 名字`（开关）或 `flag 名字=选项`（多选一）引用，关闭用 "!flag 名字"
 #当前值存 webinfo/settings.json 的 flags 段，只存与这里 default 不同的值；
 #修改用 GET /api/v1/flags、POST /api/v1/flags/{名字} {"value": ...}、DELETE /api/v1/flags/{名字}（恢复默认）
+#requery_on_change: true（可选，默认 false）：该开关的值实际改变并发布后，若配置里有 requery 插件，程序随即启动一次 requery
+#（requery 按自己的 flush_rules 清缓存，再预热）；值没变、更新试运行（503）、没有 requery 插件时都不触发
 #首次启动时从旧的 rule/switchN.txt 迁移一次（旧文件保留但不再读取）
 #section 是所属 UI 子项：mode 运行模式、upstream 上游设置、routing 分流规则、blocking 请求屏蔽、
-#rewrite 改写规则、learning 域名学习、cache 缓存设置、client 客户端、special_groups 专属分流组
+#rewrite（并入分流规则）、learning 域名学习、cache 缓存设置、client 客户端、special_groups 专属分流组
 
 #原 switch3：强烈建议兼容模式
   - tag: core_mode
@@ -19,6 +21,7 @@ plugins:
         - {value: compat, label: 兼容模式}
         - {value: safe, label: 安全模式}
       default: compat
+      requery_on_change: true
 
 #原 switch17
   - tag: dns_mode
@@ -32,6 +35,7 @@ plugins:
         - {value: fakeip, label: FakeIP 分流}
         - {value: realip, label: RealIP 分流}
       default: fakeip
+      requery_on_change: true
 
 #原 switch9（旧值 B 为开）
   - tag: cn_fakeip
@@ -42,6 +46,7 @@ plugins:
       section: mode
       kind: bool
       default: false
+      requery_on_change: true
 
 #原 switch8
   - tag: prefer_v4

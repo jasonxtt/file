@@ -12,7 +12,7 @@
 | ECS 地址 | 同上 `client_ecs`（`ecs_address`） | 同上 | 同上 |
 | 各组上游列表、是否走代理 | 各 `aliapi` 的 `upstreams`（条目 `use_proxy`） | 上游设置 | 同上 |
 | 域名生成开关 | `route_learner` 各类别的 `enabled` | 系统设置 → 域名生成 | 同上 |
-| 功能开关（运行模式、屏蔽、缓存、客户端分流等） | `sub_config/flags.yaml` 的 `feature_flag` | （UI 重做后按声明自动生成） | 同上（`flags` 段） |
+| 功能开关（运行模式、屏蔽、缓存、客户端分流等） | `sub_config/flags.yaml` 的 `feature_flag` | 规则设置各子项顶部（按开关声明的 `section` 自动生成） | 同上（`flags` 段） |
 
 - `webinfo/settings.json` 只保存**与本包 YAML 不同**的值；删除该文件即回到本包默认。修改在 WebUI 保存后**立即生效**，不需要重启。
 - **代理默认为空 = 不使用代理**（与 `config_all` 在 Go 下默认的“全局 socks5 为空”相同）。填写 `main_proxy` 后，所有规则源下载以及
@@ -69,6 +69,12 @@
 流程里的 82 处 `switchN 'X'` 逐一换成 `flag 名字` / `flag 名字=选项` / `"!flag 名字"`，规则条数、顺序与所在流程都没变；默认值与本包原来的 `rule/switchN.txt` 相同。
 开关的值存 `webinfo/settings.json` 的 `flags` 段（只存与默认不同的）；首次以新程序正常启动时从 `rule/switchN.txt` 迁移一次（在线更新试运行期间不写），旧文件保留但不再读取。
 `rule/switchN.txt` 样例文件保留（新安装时它们就是迁移来源，取值等于默认）。详见 mosdns-rust 的 `docs/rust/contracts/native-feature-flags.md`。
+`core_mode`、`dns_mode`、`cn_fakeip` 三个开关带可选参数 `requery_on_change: true`：值实际改变并发布后，程序自己启动一次 `requery`（清缓存再预热，由 `requery` 的 `flush_rules` 决定清什么）；
+值没变、在线更新试运行期间（接口 503）或配置里没有 `requery` 插件时不触发。WebUI 不再自己做“切换后清缓存、触发刷新”的联动，接口返回里的 `requery_triggered` 说明这次是否已触发。
+自己新增开关时需要同样联动，在它的 `args` 里写 `requery_on_change: true`。
+
+### 不再附带 `ui/ilog/`
+本包不再附带旧的 `ui/ilog/` 日志页（rtdns 内置的 WebUI 在 `/`，不需要它）。包只管理配置，不管理已部署机器上的 `ui/` 目录：已有的 `ui/ilog/` 不会被动到，也不再被更新，不用时可以手动删除。
 
 ### `webinfo/`
 删除 `upstream_overrides.json` 与 `config_overrides.json`（原生不读取，保留会让人误以为它们仍然生效）。其余文件不变。
