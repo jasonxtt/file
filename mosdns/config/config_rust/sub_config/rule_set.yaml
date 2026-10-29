@@ -130,14 +130,14 @@ plugins:
           output_tag: "CN fakeip filter"
         - tag: cuscn
           mark: 13
-          output_tag: "订阅直连补充"
+          output_tag: "直连域名"
         - tag: geosite_no_cn
           mark: 14
-          output_tag: "订阅代理"
+          output_tag: "非中国域名"
         - tag: cusnocn
           mark: 15
-          output_tag: "订阅代理补充"
+          output_tag: "代理域名"
         - tag: geosite_cn
           mark: 16
-          output_tag: "订阅直连"
+          output_tag: "中国域名"
      

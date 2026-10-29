@@ -85,6 +85,10 @@
 - 刷新（requery）流程 `sequence_local_addlist_exit_requery`、`sequence_localfake_addlist_exit_requery` 里“国外应答含非国内 IP”的分支改为按 `dns_mode` 走：FakeIP 分流照旧丢弃应答改问 sing-box（`nocnfake`）；
   RealIP 分流保留国外真实 IP、不再问 sing-box。原来在 RealIP 模式下刷新会把 FakeIP 写进与客户端共用的缓存（`cache_all` / `cache_all_noleak`），客户端随后拿到 FakeIP。
 
+### 订阅集合改名（config schema 5，只改命中标签）：`rule_set.yaml`，另有注释改动：`process_v4.yaml`、`process_v6.yaml`、`route_learner.yaml`
+`rule_set.yaml` 里四个订阅集合的 `output_tag`（日志里的命中标签）改成与 WebUI 分流规则里的名称一致：`订阅直连补充` → `直连域名`（`cuscn`）、`订阅代理补充` → `代理域名`（`cusnocn`）、`订阅直连` → `中国域名`（`geosite_cn`）、`订阅代理` → `非中国域名`（`geosite_no_cn`）。
+`fast_mark` 编号、匹配顺序和分流判定都没有变；程序同时认新旧两套名字，旧的查询日志保留旧名称，统计里新旧名称分开计数。
+
 ### 全新安装包 `config_rust.zip` 带 WebUI
 rtdns 从 v0.4.0 起不再把 WebUI 编进程序：WebUI 是 `<配置根>/ui/main/`（由 `/` 提供），随在线更新与程序一起替换（只在该目录已存在时）。
 `config_rust.zip` 由 `../build_config_rust_zip.sh <rtdns-webui.tar.gz>` 生成：本目录内容 + 同版本 rtdns Release 的 `rtdns-webui.tar.gz` 解到 `ui/main/`。本目录里不放 WebUI 文件。

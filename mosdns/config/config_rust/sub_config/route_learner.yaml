@@ -45,7 +45,7 @@ plugins:
           source: my_nov4rule
           ttl: 691200
 
-  # 静态名单（白名单/订阅直连）里的名字，向国内应答后记为直连（速度：一次 mapper 匹配拿到多个 mark）
+  # 静态名单（白名单/中国域名）里的名字，向国内应答后记为直连（速度：一次 mapper 匹配拿到多个 mark）
   - tag: learn_direct_listed
     type: route_learn
     args: {learner: route_learner, learn: [my_realiplist]}
@@ -55,7 +55,7 @@ plugins:
     type: route_learn
     args: {learner: route_learner, learn: [my_realiplist]}
 
-  # 代理决定（灰名单/订阅代理/探测到非国内 IP）：记为代理
+  # 代理决定（灰名单/非中国域名/探测到非国内 IP）：记为代理
   - tag: learn_proxy
     type: route_learn
     args: {learner: route_learner, learn: [my_fakeiplist]}
