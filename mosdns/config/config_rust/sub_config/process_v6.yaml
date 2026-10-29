@@ -13,15 +13,15 @@ plugins:
         exec: $sequence_local_addlist_exit_v6       #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:62
       - matches: fast_mark 8
         exec: exit
-      - matches: fast_mark 15                       #订阅代理补充
+      - matches: fast_mark 15                       #代理域名
         exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 13                       #订阅直连补充
+      - matches: fast_mark 13                       #直连域名
         exec: $sequence_local_addlist_exit_v6       #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:62
       - matches: fast_mark 13
         exec: exit
       - matches: fast_mark 14                       #geosite-geolocation-!cn
         exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 16                       #订阅直连
+      - matches: fast_mark 16                       #中国域名
         exec: $sequence_local_addlist_exit_v6       #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:62
       - matches: fast_mark 16
         exec: exit
@@ -78,15 +78,15 @@ plugins:
         exec: $sequence_localfake_addlist_exit      #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:162
       - matches: fast_mark 8
         exec: exit
-      - matches: fast_mark 15                       #订阅代理补充
+      - matches: fast_mark 15                       #代理域名
         exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 13                       #订阅直连补充
+      - matches: fast_mark 13                       #直连域名
         exec: $sequence_localfake_addlist_exit      #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:162
       - matches: fast_mark 13
         exec: exit
       - matches: fast_mark 14                       #geosite-geolocation-!cn
         exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 16                       #订阅直连
+      - matches: fast_mark 16                       #中国域名
         exec: $sequence_localfake_addlist_exit      #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:162
       - matches: fast_mark 16
         exec: exit
@@ -148,15 +148,15 @@ plugins:
         exec: $sequence_local_addlist_exit_requery  #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:77
       - matches: fast_mark 8
         exec: exit
-      - matches: fast_mark 15                       #订阅代理补充
+      - matches: fast_mark 15                       #代理域名
         exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 13                       #订阅直连补充
+      - matches: fast_mark 13                       #直连域名
         exec: $sequence_local_addlist_exit_requery  #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:77
       - matches: fast_mark 13
         exec: exit
       - matches: fast_mark 14                       #geosite-geolocation-!cn
         exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 16                       #订阅直连
+      - matches: fast_mark 16                       #中国域名
         exec: $sequence_local_addlist_exit_requery  #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:77
       - matches: fast_mark 16
         exec: exit
@@ -213,15 +213,15 @@ plugins:
         exec: $sequence_localfake_addlist_exit_requery  #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:173
       - matches: fast_mark 8
         exec: exit
-      - matches: fast_mark 15                       #订阅代理补充
+      - matches: fast_mark 15                       #代理域名
         exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 13                       #订阅直连补充
+      - matches: fast_mark 13                       #直连域名
         exec: $sequence_localfake_addlist_exit_requery  #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:173
       - matches: fast_mark 13
         exec: exit
       - matches: fast_mark 14                       #geosite-geolocation-!cn
         exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 16                       #订阅直连
+      - matches: fast_mark 16                       #中国域名
         exec: $sequence_localfake_addlist_exit_requery  #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:173
       - matches: fast_mark 16
         exec: exit
