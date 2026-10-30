@@ -1,69 +1,82 @@
+#缓存的三个数值可以在 WebUI「规则设置 › 缓存设置」里调整，调整后存进 webinfo/settings.json（只存与本文件不同的值），本文件保持默认。
+#  size              最多缓存多少条（超出后淘汰较少用的）
+#  lazy_cache_ttl    应答过期后仍可继续提供的时长，单位秒；604800 = 7 天，0 = 不保留过期缓存
+#  dump_interval     把缓存写入 dump_file 的间隔，单位秒；21600 = 6 小时
+#改动其中任何一项，对应缓存会以空缓存重新开始。
+#label 是 WebUI 里显示的中文名（可选，不写就显示 tag；改它不影响缓存内容）。
 plugins:
 #全部缓存 第1层缓存 直面客户端
   - tag: cache_all
     type: cache
     args:
-      size: 20000000
-      lazy_cache_ttl: 259200000
+      label: "全局缓存·兼容模式"
+      size: 100000
+      lazy_cache_ttl: 604800
 #      exclude_ip:
 #        - 28.0.0.0/8
 #        - fc00::/18
       dump_file: cache/cache_all.dump
-      dump_interval: 36000
+      dump_interval: 21600
 
 #全部缓存 第1层缓存 直面客户端
   - tag: cache_all_noleak
     type: cache
     args:
-      size: 20000000
-      lazy_cache_ttl: 259200000
+      label: "全局缓存·安全模式"
+      size: 100000
+      lazy_cache_ttl: 604800
       exclude_ip:
 #        - 28.0.0.0/8
 #        - fc00::/18
       dump_file: cache/cache_all_noleak.dump
-      dump_interval: 36000
+      dump_interval: 21600
 
 #中国域名列表的过期缓存
   - tag: cache_cn
     type: cache
     args:
-      size: 20000000
-      lazy_cache_ttl: 259200000
+      label: "国内查询缓存"
+      size: 50000
+      lazy_cache_ttl: 604800
       dump_file: cache/cache_cn.dump
-      dump_interval: 36000
+      dump_interval: 21600
 
 #列表外域名的过期缓存
   - tag: cache_google
     type: cache
     args:
-      size: 20000000
-      lazy_cache_ttl: 259200000
+      label: "国外查询缓存"
+      size: 20000
+      lazy_cache_ttl: 604800
       dump_file: cache/cache_google.dump
-      dump_interval: 36000
+      dump_interval: 21600
 
   - tag: cache_google_node
     type: cache
     args:
-      size: 20000000
-      lazy_cache_ttl: 259200000
+      label: "国外查询缓存·带 ECS"
+      size: 20000
+      lazy_cache_ttl: 604800
       enable_ecs: true
       dump_file: cache/cache_google_node.dump
-      dump_interval: 36000
+      dump_interval: 21600
 
 #节点域名列表的过期缓存
   - tag: cache_node
     type: cache
     args:
-      size: 20000000
-      lazy_cache_ttl: 259200000
+      label: "节点域名缓存"
+      size: 20000
+      lazy_cache_ttl: 604800
       dump_file: cache/cache_node.dump
-      dump_interval: 36000
+      dump_interval: 21600
 
 #cnmihomo fakeip过期缓存
   - tag: cache_cnmihomo
     type: cache
     args:
-      size: 20000000
-      lazy_cache_ttl: 259200000
+      label: "国内 FakeIP 缓存"
+      size: 20000
+      lazy_cache_ttl: 604800
       dump_file: cache/cache_cnmihomo.dump
-      dump_interval: 36000
+      dump_interval: 21600

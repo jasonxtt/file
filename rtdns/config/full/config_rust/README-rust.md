@@ -89,6 +89,20 @@
 `rule_set.yaml` 里四个订阅集合的 `output_tag`（日志里的命中标签）改成与 WebUI 分流规则里的名称一致：`订阅直连补充` → `直连域名`（`cuscn`）、`订阅代理补充` → `代理域名`（`cusnocn`）、`订阅直连` → `中国域名`（`geosite_cn`）、`订阅代理` → `非中国域名`（`geosite_no_cn`）。
 `fast_mark` 编号、匹配顺序和分流判定都没有变；程序同时认新旧两套名字，旧的查询日志保留旧名称，统计里新旧名称分开计数。
 
+### 缓存默认值收紧、数值可在 WebUI 调整（config schema 6）：`cache.yaml`
+7 个缓存原来都是 `size: 20000000`（实际不设限）、`lazy_cache_ttl: 259200000`（秒，3000 天，等于不限）、`dump_interval: 36000`。现改为：
+
+| 缓存 | `size`（条） | `lazy_cache_ttl` | `dump_interval` |
+|---|---|---|---|
+| `cache_all`、`cache_all_noleak`（直面客户端，兼容/安全模式只有一个在用） | 100000 | 604800（7 天） | 21600（6 小时） |
+| `cache_cn` | 50000 | 604800 | 21600 |
+| `cache_google`、`cache_google_node`、`cache_node`、`cache_cnmihomo` | 20000 | 604800 | 21600 |
+
+依据：生产观察里最大的缓存约 3.3 万条，各档约为现有用量的 3 倍以上。应用本包后这 7 个缓存各以空缓存重新开始一次（容量、保留时长、写盘间隔都是缓存的“身份”），之后过期缓存最多再保留 7 天。
+三个数值可在 WebUI「规则设置 › 缓存设置」调整，保存在 `webinfo/settings.json` 的 `caches` 段（只存与本文件不同的值），**不受配置包更新影响**；域名学习的每类有效期、容量和写盘间隔同样可在「域名学习」页调整（`learning` 段），本包的 `route_learner.yaml` 数值没有改。
+7 个缓存都加了可选的 `label`（WebUI 里显示的中文名，如“全局缓存·兼容模式”“国内查询缓存”），`route_learner.yaml` 里的学习规则也加了 `label`（学习明细“原因”列的中文说明）；不写就显示 tag。程序为专属分流组生成的缓存（`cache_special_N`）自动带 `专属分流组「组名」缓存` 的标签，容量、保留时长、写盘间隔用同一组新默认值（20000、604800、21600）。
+回滚到不认识这两段的旧程序前，先在 WebUI 里“恢复默认”（或删除 `settings.json` 里的 `caches`、`learning`），否则旧程序会因未知键拒绝启动。
+
 ### 全新安装包 `config_rust.zip` 带 WebUI
 rtdns 从 v0.4.0 起不再把 WebUI 编进程序：WebUI 是 `<配置根>/ui/main/`（由 `/` 提供），随在线更新与程序一起替换（只在该目录已存在时）。
 `config_rust.zip` 由 `../build_config_rust_zip.sh <rtdns-webui.tar.gz>` 生成：本目录内容 + 同版本 rtdns Release 的 `rtdns-webui.tar.gz` 解到 `ui/main/`。本目录里不放 WebUI 文件。
