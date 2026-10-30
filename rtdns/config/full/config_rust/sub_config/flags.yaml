@@ -118,22 +118,22 @@ plugins:
       kind: bool
       default: false
 
-#原 switch4：强烈建议打开；cache_google_node 缓存不受此开关控制，否则会影响 7777 逻辑
-  - tag: lazy_cache
-    type: feature_flag
-    args:
-      label: 过期缓存 1
-      description: 启用国内、国外各段的过期缓存（含专属分流组的缓存）。
-      section: cache
-      kind: bool
-      default: true
-
 #原 switch13
   - tag: full_cache
     type: feature_flag
     args:
-      label: 过期缓存 2
-      description: 启用全部缓存（兼容模式 cache_all、安全模式 cache_all_noleak），缓存 FakeIP，直面客户端。
+      label: 全局缓存
+      description: 启用直面客户端的全局缓存（兼容模式用「全局缓存·兼容模式」，安全模式用「全局缓存·安全模式」），会缓存 FakeIP。
+      section: cache
+      kind: bool
+      default: true
+
+#原 switch4：强烈建议打开；cache_google_node 缓存不受此开关控制，否则会影响 7777 逻辑
+  - tag: lazy_cache
+    type: feature_flag
+    args:
+      label: 分组缓存
+      description: 启用分组缓存：国内查询缓存、国外查询缓存、国内 FakeIP 缓存和各专属分流组的缓存。国外查询缓存·带 ECS 与节点域名缓存不受它控制。
       section: cache
       kind: bool
       default: true
