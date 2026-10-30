@@ -11,7 +11,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SOURCE_DIR="${ROOT_DIR}/config_rust"
+SOURCE_DIR="${ROOT_DIR}/../full/config_rust"
 OUTPUT_ZIP="${ROOT_DIR}/config_rust_up.zip"
 
 SCHEMA=5
