@@ -18,7 +18,7 @@
 - **代理默认为空 = 不使用代理**（与 `config_all` 在 Go 下默认的“全局 socks5 为空”相同）。填写 `main_proxy` 后，所有规则源下载以及
   `foreign` / `foreignecs` 里 `use_proxy: true` 的上游才经它连接；其余上游不受影响。
 - 原生运行时**不读取** Go 版的 `webinfo/upstream_overrides.json`、`config_overrides.json`、`domain_generation_settings.json`。
-  从 Go 版迁移时用一次性工具 `mosdns-settings-migrate`（见文末）。
+  从 Go 版迁移时用一次性工具 `atomdns-settings-migrate`（见文末）。
 
 ## 与 config_all 的差异
 
@@ -74,9 +74,9 @@
 自己新增开关时需要同样联动，在它的 `args` 里写 `requery_on_change: true`。
 
 ### 不再附带 `ui/ilog/`
-本包不再附带旧的 `ui/ilog/` 日志页（rtdns 的 WebUI 在 `/`，不需要它）。配置包（`config_rust_up.zip`）只管理配置，不管理已部署机器上的 `ui/` 目录：已有的 `ui/ilog/` 不会被动到，也不再被更新，不用时可以手动删除。
+本包不再附带旧的 `ui/ilog/` 日志页（atomdns 的 WebUI 在 `/`，不需要它）。配置包（`config_rust_up.zip`）只管理配置，不管理已部署机器上的 `ui/` 目录：已有的 `ui/ilog/` 不会被动到，也不再被更新，不用时可以手动删除。
 
-### 上游组随开关显示/隐藏、开关归属、刷新修正（config schema 4，rtdns v0.4.0）：`forward_1.yaml`、`flags.yaml`
+### 上游组随开关显示/隐藏、开关归属、刷新修正（config schema 4，atomdns v0.4.0）：`forward_1.yaml`、`flags.yaml`
 - `aliapi` 新增可选参数 `show_when`（只影响 WebUI，不影响解析）：条件写法与流程里的开关匹配相同（`flag 名字`、`flag 名字=选项`、`"!flag 名字"`，列表表示全部满足），写错会在加载时报错。
   条件不成立时，该组在上游设置里默认隐藏（可点“显示未生效的组”），概览的上游统计里不显示。本包：`cnfake` → `show_when: flag cn_fakeip`；`nocnfake` → `show_when: flag dns_mode=fakeip`。
   注意：**3099 端口（clashmi 回家）不看 `cn_fakeip`，始终使用 `cnfake`**；`cn_fakeip` 关时界面不显示 `cnfake`，但 3099 端口照常用它。`domestic`、`foreign`、`foreignecs`（4444 端口一直在用）始终显示。
@@ -104,8 +104,8 @@
 回滚到不认识这两段的旧程序前，先在 WebUI 里“恢复默认”（或删除 `settings.json` 里的 `caches`、`learning`），否则旧程序会因未知键拒绝启动。
 
 ### 全新安装包 `config_rust.zip` 带 WebUI
-rtdns 从 v0.4.0 起不再把 WebUI 编进程序：WebUI 是 `<配置根>/ui/main/`（由 `/` 提供），随在线更新与程序一起替换（只在该目录已存在时）。
-`config_rust.zip` 由 `../build_config_rust_zip.sh <rtdns-webui.tar.gz>` 生成：本目录内容 + 同版本 rtdns Release 的 `rtdns-webui.tar.gz` 解到 `ui/main/`。本目录里不放 WebUI 文件。
+atomdns 从 v0.4.0 起不再把 WebUI 编进程序：WebUI 是 `<配置根>/ui/main/`（由 `/` 提供），随在线更新与程序一起替换（只在该目录已存在时）。
+`config_rust.zip` 由 `../build_config_rust_zip.sh <atomdns-webui.tar.gz>` 生成：本目录内容 + 同版本 atomdns Release 的 `atomdns-webui.tar.gz` 解到 `ui/main/`。本目录里不放 WebUI 文件。
 不要 WebUI（纯后端）就删掉 `ui/main/`，`/` 会显示“没有安装 WebUI”，接口照常。
 
 ### `webinfo/`
@@ -130,12 +130,12 @@ rtdns 从 v0.4.0 起不再把 WebUI 编进程序：WebUI 是 `<配置根>/ui/mai
 
 ## 部署
 
-1. 解压 `config_rust.zip` 为配置目录，用原生 `mosdns start -d <目录> -c config_custom.yaml` 运行；先用 `mosdns check -d <目录> -c config_custom.yaml` 检查
+1. 解压 `config_rust.zip` 为配置目录，用原生 `atomdns start -d <目录> -c config_custom.yaml` 运行；先用 `atomdns check -d <目录> -c config_custom.yaml` 检查
    （应为 `gaps=0 cascades=0 globals=0`，所有 `EFFECTIVE` 行的来源为 `yaml`）。
 2. 从 Go 版迁移已有的覆盖设置（代理、ECS、上游列表、域名生成开关）：
 
    ```bash
-   mosdns-settings-migrate --from <Go 配置目录> -d <config_rust 目录> -c config_custom.yaml --out <输出目录>
+   atomdns-settings-migrate --from <Go 配置目录> -d <config_rust 目录> -c config_custom.yaml --out <输出目录>
    ```
 
    工具只读 Go 目录里的三个覆盖文件，不修改任何输入，在 `<输出目录>` 写 `settings.json` 与 `migration-report.txt`。
@@ -147,7 +147,7 @@ rtdns 从 v0.4.0 起不再把 WebUI 编进程序：WebUI 是 `<配置根>/ui/mai
 ## 打包
 
 ```bash
-cd mosdns/config/config_rust && zip -r ../config_rust.zip . -x '.DS_Store' -x '*/.DS_Store'
+cd atomdns/config/config_rust && zip -r ../config_rust.zip . -x '.DS_Store' -x '*/.DS_Store'
 ```
 
 （`build_config_up.sh` 面向 Go 版的增量更新包 `config_up`，不适用于本包。）

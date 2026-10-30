@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
-# Builds config_rust.zip, the fresh-install package of rtdns: everything in config_rust/ plus the
-# WebUI unpacked from a release's rtdns-webui.tar.gz into ui/main/ (served at /). The WebUI is
-# not kept in config_rust/ itself; it comes from the rtdns release of the same version.
-#   ./build_config_rust_zip.sh <rtdns-webui.tar.gz> [output.zip]
+# Builds config_rust.zip, the fresh-install package of atomdns: everything in config_rust/ plus the
+# WebUI unpacked from a release's atomdns-webui.tar.gz into ui/main/ (served at /). The WebUI is
+# not kept in config_rust/ itself; it comes from the atomdns release of the same version.
+#   ./build_config_rust_zip.sh <atomdns-webui.tar.gz> [output.zip]
 # The default output is config_rust.zip next to this script.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DIR="${ROOT_DIR}/config_rust"
-WEBUI="${1:?usage: build_config_rust_zip.sh <rtdns-webui.tar.gz> [output.zip]}"
+WEBUI="${1:?usage: build_config_rust_zip.sh <atomdns-webui.tar.gz> [output.zip]}"
 OUTPUT_ZIP="${2:-${ROOT_DIR}/config_rust.zip}"
 OUTPUT_ZIP="$(cd "$(dirname "${OUTPUT_ZIP}")" && pwd)/$(basename "${OUTPUT_ZIP}")"
 
 if [[ -e "${SOURCE_DIR}/ui/main" ]]; then
-  echo "config_rust/ui/main must not exist (the WebUI comes from rtdns-webui.tar.gz)" >&2
+  echo "config_rust/ui/main must not exist (the WebUI comes from atomdns-webui.tar.gz)" >&2
   exit 1
 fi
 # List once: `tar | grep -q` under pipefail fails when grep exits early and tar gets SIGPIPE.
