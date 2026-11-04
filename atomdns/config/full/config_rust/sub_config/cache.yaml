@@ -61,16 +61,6 @@ plugins:
       dump_file: cache/cache_google_node.dump
       dump_interval: 21600
 
-#节点域名列表的过期缓存
-  - tag: cache_node
-    type: cache
-    args:
-      label: "节点域名缓存"
-      size: 20000
-      lazy_cache_ttl: 604800
-      dump_file: cache/cache_node.dump
-      dump_interval: 21600
-
 #cnmihomo fakeip过期缓存
   - tag: cache_cnmihomo
     type: cache

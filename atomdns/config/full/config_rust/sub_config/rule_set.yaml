@@ -12,7 +12,7 @@ plugins:
     args:
       files:
         - "rule/rewrite.txt"
-      dns: 127.0.0.1:2222
+      dns: $sequence_local_in                    #在进程内用国内上游解析重写目标，不占用端口
 
 #自定义国外域名列表
   - tag: cusnocn

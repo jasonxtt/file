@@ -3,3 +3,4 @@ plugins:
     type: requery
     args:
       file: "webinfo/requeryconfig.json"
+      resolver: $sequence_requery               #在进程内用刷新序列重新解析，不占用端口；webinfo/requeryconfig.json 的 resolver_address 此时不再使用
