@@ -15,7 +15,7 @@ plugins:
   - tag: cnfake
     type: aliapi
     args:
-      show_when: flag cn_fakeip                 #只影响 WebUI：仅「国内域名 FakeIP」开启时显示此组；3099 端口（clashmi）不看此开关，始终使用 cnfake
+      show_when: flag cn_fakeip                 #只影响 WebUI：仅「国内域名 FakeIP」开启时显示此组
       concurrent: 1
       proxy: $main_proxy                        #本组条目可用 use_proxy: true 选择走代理（默认都不走）
       upstreams:
@@ -131,47 +131,6 @@ plugins:
     args:
       - exec: $learn_direct_probed                  #探测应答含直连 IP/国内 IP：记忆直连；定义: sub_config/route_learner.yaml
       - exec: exit
-
-#向mihomo请求国内的fakeip序列，重新向国内dns请求
-  - tag: sequence_local_fake
-    type: sequence
-    args:
-      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
-        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
-      - matches: fast_mark 10
-        exec:
-          - $sequence_local                         #定义: sub_config/forward_1.yaml:112
-          - flow_setter sequence=sequence_local_fake upstream=domestic
-      - matches: "!fast_mark 10"
-        exec:
-          - flow_setter sequence=sequence_local_fake upstream=cnfake
-          - $cnfake                                 #定义: sub_config/forward_1.yaml:12
-      - exec: ttl 5
-
-  - tag: sequence_local_fake_clashmi
-    type: sequence
-    args:
-      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
-        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
-      - matches: fast_mark 10
-        exec:
-          - $sequence_local                         #定义: sub_config/forward_1.yaml:112
-          - flow_setter sequence=sequence_local_fake_clashmi upstream=domestic
-      - matches: "!fast_mark 10"
-        exec:
-          - flow_setter sequence=sequence_local_fake_clashmi upstream=cnfake
-          - $cnfake                                 #定义: sub_config/forward_1.yaml:12
-      - exec: ttl 5
-
-#向mihomo请求国内的fakeip序列并缓存
-  - tag: sequence_local_fake_pure
-    type: sequence
-    args:
-      - exec: flow_setter sequence=sequence_local_fake_pure upstream=cnfake
-      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
-        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
-      - exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
-      - exec: ttl 5
 
 #向mihomo请求国内的fakeip序列、加入清单并结束
   - tag: sequence_localfake_addlist_exit
@@ -337,7 +296,7 @@ plugins:
         exec: $sequence_proxy_realip_exit
       - exec: exit
 
-#国内域名 内部使用
+#国内上游入口：rewrite 的 dns: $sequence_local_in 在进程内调用它，不占用端口
   - tag: sequence_local_in
     type: sequence
     args:
@@ -352,17 +311,3 @@ plugins:
       secondary: domestic                          # 副可执行插件的 tag
       threshold: 1000                                       # 无响应回滚阈值。单位毫秒。默认 500 。
       always_standby: false                            # 副可执行插件始终待命。 
-
-
-#国内
-  - tag: udp_local
-    type: udp_server
-    args:
-      entry: sequence_local_in
-      listen: ":2222"
-
-  - tag: tcp_local
-    type: tcp_server
-    args:
-      entry: sequence_local_in
-      listen: ":2222"

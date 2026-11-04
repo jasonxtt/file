@@ -128,12 +128,12 @@ plugins:
       kind: bool
       default: true
 
-#原 switch4：强烈建议打开；cache_google_node 缓存不受此开关控制，否则会影响 7777 逻辑
+#原 switch4：强烈建议打开；cache_google_node（表外 ECS 查询缓存）不受此开关控制
   - tag: lazy_cache
     type: feature_flag
     args:
       label: 分组缓存
-      description: 启用分组缓存：国内查询缓存、国外查询缓存、国内 FakeIP 缓存和各专属分流组的缓存。国外查询缓存·带 ECS 与节点域名缓存不受它控制。
+      description: 启用分组缓存：国内查询缓存、国外查询缓存、国内 FakeIP 缓存和各专属分流组的缓存。国外查询缓存·带 ECS 不受它控制。
       section: cache
       kind: bool
       default: true

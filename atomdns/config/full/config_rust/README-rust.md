@@ -79,7 +79,7 @@
 ### 上游组随开关显示/隐藏、开关归属、刷新修正（config schema 4，atomdns v0.4.0）：`forward_1.yaml`、`flags.yaml`
 - `aliapi` 新增可选参数 `show_when`（只影响 WebUI，不影响解析）：条件写法与流程里的开关匹配相同（`flag 名字`、`flag 名字=选项`、`"!flag 名字"`，列表表示全部满足），写错会在加载时报错。
   条件不成立时，该组在上游设置里默认隐藏（可点“显示未生效的组”），概览的上游统计里不显示。本包：`cnfake` → `show_when: flag cn_fakeip`；`nocnfake` → `show_when: flag dns_mode=fakeip`。
-  注意：**3099 端口（clashmi 回家）不看 `cn_fakeip`，始终使用 `cnfake`**；`cn_fakeip` 关时界面不显示 `cnfake`，但 3099 端口照常用它。`domestic`、`foreign`、`foreignecs`（4444 端口一直在用）始终显示。
+  `cn_fakeip` 关时界面不显示 `cnfake`。`domestic`、`foreign`、`foreignecs` 始终显示。
 - 一个上游组至少要保留一个启用的上游：全部停用或删掉最后一个会被拒绝并说明原因；不想用某个组，关闭使用它的开关即可。
 - `ddns_foreign`（DDNS 优先国外解析）的 `section` 从 `upstream` 改为 `mode`，在 WebUI 的“运行模式”里。
 - 刷新（requery）流程 `sequence_local_addlist_exit_requery`、`sequence_localfake_addlist_exit_requery` 里“国外应答含非国内 IP”的分支改为按 `dns_mode` 走：FakeIP 分流照旧丢弃应答改问 sing-box（`nocnfake`）；
@@ -96,7 +96,7 @@
 |---|---|---|---|
 | `cache_all`、`cache_all_noleak`（直面客户端，兼容/安全模式只有一个在用） | 100000 | 604800（7 天） | 21600（6 小时） |
 | `cache_cn` | 50000 | 604800 | 21600 |
-| `cache_google`、`cache_google_node`、`cache_node`、`cache_cnmihomo` | 20000 | 604800 | 21600 |
+| `cache_google`、`cache_google_node`、`cache_cnmihomo` | 20000 | 604800 | 21600 |
 
 依据：生产观察里最大的缓存约 3.3 万条，各档约为现有用量的 3 倍以上。应用本包后这 7 个缓存各以空缓存重新开始一次（容量、保留时长、写盘间隔都是缓存的“身份”），之后过期缓存最多再保留 7 天。
 三个数值可在 WebUI「规则设置 › 缓存设置」调整，保存在 `webinfo/settings.json` 的 `caches` 段（只存与本文件不同的值），**不受配置包更新影响**；域名学习的每类有效期、容量和写盘间隔同样可在「域名学习」页调整（`learning` 段），本包的 `route_learner.yaml` 数值没有改。

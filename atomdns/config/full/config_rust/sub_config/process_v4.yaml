@@ -50,7 +50,7 @@ plugins:
       - matches: flag core_mode=compat              #兼容模式；定义: sub_config/flags.yaml
         exec: $sequence_local                       #表外域名先发到国内查第1次；定义: sub_config/forward_1.yaml:112
       - matches: flag core_mode=safe                #安全模式；定义: sub_config/flags.yaml
-        exec: $sequence_google_node                 #表外域名先带ecs发到8888查第1次；定义: sub_config/forward_nocn_ecs.yaml:12
+        exec: $sequence_google_node                 #表外域名先带ecs查国外第1次；定义: sub_config/forward_nocn_ecs.yaml:12
       - matches:
         - flag core_mode=safe                       #安全模式；定义: sub_config/flags.yaml
         - "!resp_ip 0.0.0.0/0"                      #还是没有IP
@@ -108,7 +108,7 @@ plugins:
       - matches: flag core_mode=compat              #兼容模式；定义: sub_config/flags.yaml
         exec: $sequence_local                       #表外域名先发到国内查第1次；定义: sub_config/forward_1.yaml:112
       - matches: flag core_mode=safe                #安全模式；定义: sub_config/flags.yaml
-        exec: $sequence_google_node                 #表外域名先带ecs发到8888查第1次；定义: sub_config/forward_nocn_ecs.yaml:12
+        exec: $sequence_google_node                 #表外域名先带ecs查国外第1次；定义: sub_config/forward_nocn_ecs.yaml:12
       - matches:
         - flag core_mode=safe                       #安全模式；定义: sub_config/flags.yaml
         - "!resp_ip 0.0.0.0/0"                      #还是没有IP
@@ -167,7 +167,7 @@ plugins:
       - matches: flag core_mode=compat              #兼容模式；定义: sub_config/flags.yaml
         exec: $sequence_local                       #表外域名先发到国内查第1次；定义: sub_config/forward_1.yaml:112
       - matches: flag core_mode=safe                #安全模式；定义: sub_config/flags.yaml
-        exec: $sequence_google_node                 #表外域名先带ecs发到8888查第1次；定义: sub_config/forward_nocn_ecs.yaml:12
+        exec: $sequence_google_node                 #表外域名先带ecs查国外第1次；定义: sub_config/forward_nocn_ecs.yaml:12
       - matches: "!resp_ip 0.0.0.0/0"               #国内dns/国外dns+ecs无IP的情况
         exec: fast_mark 4                           #做出标记
       - matches:
@@ -239,7 +239,7 @@ plugins:
       - matches: flag core_mode=compat              #兼容模式；定义: sub_config/flags.yaml
         exec: $sequence_local                       #表外域名先发到国内查第1次；定义: sub_config/forward_1.yaml:112
       - matches: flag core_mode=safe                #安全模式；定义: sub_config/flags.yaml
-        exec: $sequence_google_node                 #表外域名先带ecs发到8888查第1次；定义: sub_config/forward_nocn_ecs.yaml:12
+        exec: $sequence_google_node                 #表外域名先带ecs查国外第1次；定义: sub_config/forward_nocn_ecs.yaml:12
       - matches: "!resp_ip 0.0.0.0/0"               #国内dns/国外dns+ecs无IP的情况
         exec: fast_mark 4                           #做出标记
       - matches:
