@@ -15,9 +15,9 @@ plugins:
     args:
       # 1. 向上游要真实应答
       - matches: flag core_mode=compat              # 兼容模式：国内 DNS
-        exec: $sequence_local
+        exec: $sequence_local                       #定义: sub_config/forward_1.yaml
       - matches: flag core_mode=safe                # 安全模式：国外 DNS（带 ECS）
-        exec: $sequence_google_node
+        exec: $sequence_google_node                 #定义: sub_config/forward_nocn_ecs.yaml
       # 2. 确实没有 IPv6 的域名：记忆无V6，返回空应答
       - matches:
         - "rcode 0 3"
@@ -25,7 +25,7 @@ plugins:
         exec: fast_mark 20
       - matches: fast_mark 20
         exec:
-          - $learn_nov6_empty
+          - $learn_nov6_empty                       #定义: sub_config/route_learner.yaml
           - drop_resp                               # 避免 cname 传递
           - reject 0                                # 只结束这个 exec 块，并设置 rcode
       - matches: fast_mark 20
@@ -37,15 +37,15 @@ plugins:
         - "!resp_ip 2000::/3"
         exec: exit
       # 3. 应答含直连 IP 或国内 IP：直连，记入记忆直连，结束
-      - matches: "resp_ip $direct_ip"
+      - matches: "resp_ip $direct_ip"               #定义: sub_config/rule_set.yaml
         exec: fast_mark 21
-      - matches: "resp_ip $geoip_cn"
+      - matches: "resp_ip $geoip_cn"                #定义: sub_config/rule_set.yaml
         exec: fast_mark 21
       - matches: [fast_mark 21, "!flag cn_fakeip"]
-        exec: $sequence_addrealiplist_exit
+        exec: $sequence_addrealiplist_exit          #定义: sub_config/forward_1.yaml
       - matches: [fast_mark 21, flag cn_fakeip]
-        exec: $sequence_localfake_addlist_exit
+        exec: $sequence_localfake_addlist_exit      #定义: sub_config/forward_1.yaml
       - matches: fast_mark 21
         exec: exit
       # 4. 其余的都有非国内 IPv6（没有 IPv6 的在第 2 步已经结束）：代理
-      - exec: $sequence_fakeip_addlist_exit
+      - exec: $sequence_fakeip_addlist_exit         #定义: sub_config/forward_1.yaml

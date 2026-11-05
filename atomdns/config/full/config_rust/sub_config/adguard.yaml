@@ -3,4 +3,4 @@ plugins:
     type: adguard_rule
     args:
       dir: "adguard/"
-      proxy: $main_proxy
+      proxy: $main_proxy                        #定义: sub_config/settings.yaml
