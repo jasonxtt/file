@@ -1,6 +1,5 @@
 plugins:
-#定义了一个带过期缓存的内部使用/外部使用的国外dns服务器
-#转发dns请求到国外dns
+#国外上游组：代理域名（RealIP 分流）、realiplist、其他查询类型、刷新时的二次确认都用它
   - tag: foreign
     type: aliapi
     args:

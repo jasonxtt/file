@@ -1,9 +1,9 @@
 plugins:
-# 定义了一个带过期缓存的内部使用/外部使用的国内dns服务器
+# 国内上游组：直连域名、DDNS、列表外首次查询（兼容模式）、重写目标都用它
   - tag: domestic
     type: aliapi
     args:
-      concurrent: 2                             #与 Go 默认包等效：webinfo/upstream_overrides.json 启用 2 个上游，Go 按启用数重算为 2；原生不重算，见 README-rust.md
+      concurrent: 2                             #同时向几个上游发出（取最先成功的应答）；改动启用的上游个数时一并调整
       proxy: $main_proxy                        #本组条目可用 use_proxy: true 选择走代理（默认都不走）；定义: sub_config/settings.yaml
       upstreams:
         - tag: 阿里UDP
