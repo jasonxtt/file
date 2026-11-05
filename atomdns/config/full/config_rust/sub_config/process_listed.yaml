@@ -1,0 +1,165 @@
+# ==============================================================================
+# 名单内域名的分流（A / AAAA 共用）
+# ==============================================================================
+# 谁调用：config_custom.yaml 的 sequence_6666（普通查询）调用 sequence_listed，
+#         sequence_requery（刷新分流缓存）调用 sequence_listed_requery。
+# 做什么：domain_mapper（unified_matcher1，见 rule_set.yaml）已经给这个域名打好了 fast_mark，
+#         这里按「优先级从上到下，第一个命中的 mark 决定去向」把它交给对应的结果序列（forward_1.yaml），
+#         结果序列自己会查询上游、必要时记入学习名单，并用 exit 结束整个查询。
+#         没有命中任何 mark（fast_mark 17，列表外域名）就什么都不做，回到调用者，
+#         由 process_v4.yaml / process_v6.yaml 里的「列表外」序列继续处理。
+#
+# 优先级与去向（cn_fakeip 指「国内域名 FakeIP」开关）：
+#
+#   mark  名单                       去向
+#   ----  -------------------------  ---------------------------------------------------
+#    9    realiplist（!CN FakeIP）   国外 DNS 要真实 IP（不看 DNS 分流模式）
+#   10    cnfakeipfilter（仅 cn_fakeip 开启时看）  国内 DNS 要真实 IP
+#    7    greylist 灰名单            代理：按 DNS 分流模式给 FakeIP 或国外真实 IP，并记入「记忆代理」
+#    8    whitelist 白名单           直连：国内 DNS（cn_fakeip 开启则要国内 FakeIP），并记入「记忆直连」
+#   15    cusnocn 代理域名           代理（同 7）
+#   13    cuscn 直连域名             直连（同 8）
+#   14    geosite_no_cn 非中国域名   代理（同 7）
+#   16    geosite_cn 中国域名        直连（同 8）
+#   12    记忆代理（学习得到）       代理，不重复记忆
+#   11    记忆直连（学习得到）       直连，不重复记忆
+#
+#   一个域名可以同时命中多个名单，所以顺序就是优先级：灰名单 > 白名单 > 代理域名 > 直连域名 > 非中国域名 > 中国域名 > 学习结果。
+#   静态名单永远高于学习结果。
+#
+# 关于每个结果序列后面的 exit：
+#   带缓存的结果序列在命中缓存时会立即把缓存结果交还给调用者（它自己的 exit 来不及执行），
+#   所以调用者必须再写一个 exit 才能结束整个查询。不带缓存的结果序列（fakeip_addlist_exit）自己会 exit，这里不用重复。
+plugins:
+  # 普通查询
+  - tag: sequence_listed
+    type: sequence
+    args:
+      - matches: fast_mark 9                        # realiplist：国外真实 IP
+        exec: $sequence_google_exit
+      - matches: fast_mark 9
+        exec: exit
+      - matches:                                    # cnfakeipfilter：国内真实 IP（只在 cn_fakeip 开启时有这一层）
+        - fast_mark 10
+        - flag cn_fakeip
+        exec: $sequence_local_exit
+      - matches:
+        - fast_mark 10
+        - flag cn_fakeip
+        exec: exit
+
+      - matches: fast_mark 7                        # 灰名单：代理
+        exec: $sequence_fakeip_addlist_exit
+
+      - matches: [fast_mark 8, "!flag cn_fakeip"]   # 白名单：直连
+        exec: $sequence_local_addlist_exit
+      - matches: [fast_mark 8, flag cn_fakeip]
+        exec: $sequence_localfake_addlist_exit
+      - matches: fast_mark 8
+        exec: exit
+
+      - matches: fast_mark 15                       # 代理域名：代理
+        exec: $sequence_fakeip_addlist_exit
+
+      - matches: [fast_mark 13, "!flag cn_fakeip"]  # 直连域名：直连
+        exec: $sequence_local_addlist_exit
+      - matches: [fast_mark 13, flag cn_fakeip]
+        exec: $sequence_localfake_addlist_exit
+      - matches: fast_mark 13
+        exec: exit
+
+      - matches: fast_mark 14                       # 非中国域名（geosite-geolocation-!cn）：代理
+        exec: $sequence_fakeip_addlist_exit
+
+      - matches: [fast_mark 16, "!flag cn_fakeip"]  # 中国域名（geosite-cn）：直连
+        exec: $sequence_local_addlist_exit
+      - matches: [fast_mark 16, flag cn_fakeip]
+        exec: $sequence_localfake_addlist_exit
+      - matches: fast_mark 16
+        exec: exit
+
+      - matches: fast_mark 12                       # 记忆代理：代理（不再重复记忆）
+        exec: $sequence_fakeip_exit
+
+      - matches:                                    # 记忆直连：直连（不再重复记忆）
+        - fast_mark 11
+        - flag core_mode=compat
+        - "!flag cn_fakeip"
+        exec: $sequence_local_exit
+      - matches:                                    # 安全模式：路由仍是直连，但真实 IP 只向国外 DNS 要，不问国内
+        - fast_mark 11
+        - flag core_mode=safe
+        - "!flag cn_fakeip"
+        exec: $sequence_google_node
+      - matches: [fast_mark 11, flag cn_fakeip]     # 国内 FakeIP 由外部 FakeIP 服务给出，两种模式相同
+        exec: $sequence_localfake_exit
+      - matches: fast_mark 11
+        exec: exit
+
+  # 刷新分流缓存（requery）。去向与上面相同，只是直连类的结果序列换成 *_requery 版本：
+  # 它们会在国内无结果时再问一次国外，用来确认「无 V4 / 无 V6」和特殊域名。
+  - tag: sequence_listed_requery
+    type: sequence
+    args:
+      - matches: fast_mark 9
+        exec: $sequence_google_exit
+      - matches: fast_mark 9
+        exec: exit
+      - matches:
+        - fast_mark 10
+        - flag cn_fakeip
+        exec: $sequence_local_exit_requery
+      - matches:
+        - fast_mark 10
+        - flag cn_fakeip
+        exec: exit
+
+      - matches: fast_mark 7
+        exec: $sequence_fakeip_addlist_exit
+
+      - matches: [fast_mark 8, "!flag cn_fakeip"]
+        exec: $sequence_local_addlist_exit_requery
+      - matches: [fast_mark 8, flag cn_fakeip]
+        exec: $sequence_localfake_addlist_exit_requery
+      - matches: fast_mark 8
+        exec: exit
+
+      - matches: fast_mark 15
+        exec: $sequence_fakeip_addlist_exit
+
+      - matches: [fast_mark 13, "!flag cn_fakeip"]
+        exec: $sequence_local_addlist_exit_requery
+      - matches: [fast_mark 13, flag cn_fakeip]
+        exec: $sequence_localfake_addlist_exit_requery
+      - matches: fast_mark 13
+        exec: exit
+
+      - matches: fast_mark 14
+        exec: $sequence_fakeip_addlist_exit
+
+      - matches: [fast_mark 16, "!flag cn_fakeip"]
+        exec: $sequence_local_addlist_exit_requery
+      - matches: [fast_mark 16, flag cn_fakeip]
+        exec: $sequence_localfake_addlist_exit_requery
+      - matches: fast_mark 16
+        exec: exit
+
+      - matches: fast_mark 12
+        exec: $sequence_fakeip_exit
+
+      - matches:
+        - fast_mark 11
+        - flag core_mode=compat
+        - "!flag cn_fakeip"
+        exec: $sequence_local_exit_requery
+      - matches:
+        - fast_mark 11
+        - flag core_mode=compat
+        - flag cn_fakeip
+        exec: $sequence_localfake_exit_requery
+      - matches:                                    # 安全模式：只问国外 DNS（cn_fakeip 开关在序列里判断）
+        - fast_mark 11
+        - flag core_mode=safe
+        exec: $sequence_foreign_exit_requery
+      - matches: fast_mark 11
+        exec: exit
