@@ -12,34 +12,34 @@ plugins:
     args:
       files:
         - "rule/rewrite.txt"
-      dns: $sequence_local_in                    #在进程内用国内上游解析重写目标，不占用端口
+      dns: $sequence_local_in                    #在进程内用国内上游解析重写目标，不占用端口；定义: sub_config/forward_1.yaml
 
 #自定义国外域名列表
   - tag: cusnocn
     type: sd_set_light    
     args:
-      proxy: $main_proxy 
+      proxy: $main_proxy                         #定义: sub_config/settings.yaml
       local_config: "srs/cusnocn.json" 
 
 #自定义国内域名列表
   - tag: cuscn
     type: sd_set_light    
     args:
-      proxy: $main_proxy 
+      proxy: $main_proxy                         #定义: sub_config/settings.yaml
       local_config: "srs/cuscn.json" 
 
 #中国域名列表
   - tag: geosite_cn
     type: sd_set_light    
     args:
-      proxy: $main_proxy 
+      proxy: $main_proxy                         #定义: sub_config/settings.yaml
       local_config: "srs/geositecn.json" 
 
 #中国IP列表
   - tag: geoip_cn
     type: si_set    
     args:
-      proxy: $main_proxy 
+      proxy: $main_proxy                         #定义: sub_config/settings.yaml
       local_config: "srs/geoipcn.json" 
 
 #需要代理的客户端IP列表
@@ -53,7 +53,7 @@ plugins:
   - tag: geosite_no_cn
     type: sd_set_light    
     args:
-      proxy: $main_proxy 
+      proxy: $main_proxy                         #定义: sub_config/settings.yaml
       local_config: "srs/geositenocn.json" 
 
 #自定义白名单域名列表

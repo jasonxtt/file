@@ -5,7 +5,7 @@ plugins:
     type: aliapi
     args:
       concurrent: 1
-      proxy: $main_proxy
+      proxy: $main_proxy                            #定义: sub_config/settings.yaml
       upstreams:
         - tag: google-foreignecs                #原生要求上游标签全局唯一，foreign 组已占用 google
           addr: "https://dns.google/dns-query"
@@ -15,8 +15,8 @@ plugins:
   - tag: sequence_google_node
     type: sequence
     args:
-      - exec: ecs $client_ecs
+      - exec: ecs $client_ecs                       #定义: sub_config/settings.yaml
       - exec: $cache_google_node                    #定义: sub_config/cache.yaml
       - exec: flow_setter sequence=sequence_google_node upstream=foreignecs
-      - exec: $foreignecs                           #定义: sub_config/forward_nocn_ecs.yaml
+      - exec: $foreignecs                           #定义: 本文件
       - exec: cname_remover

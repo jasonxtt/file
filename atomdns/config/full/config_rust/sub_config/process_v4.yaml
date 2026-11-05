@@ -25,23 +25,23 @@ plugins:
     args:
       # 1. 向上游要真实应答
       - matches: flag core_mode=compat              # 兼容模式：国内 DNS
-        exec: $sequence_local
+        exec: $sequence_local                       #定义: sub_config/forward_1.yaml
       - matches: flag core_mode=safe                # 安全模式：国外 DNS（带 ECS）
-        exec: $sequence_google_node
+        exec: $sequence_google_node                 #定义: sub_config/forward_nocn_ecs.yaml
       # 2. 应答含直连 IP 或国内 IP：直连，记入记忆直连，结束
-      - matches: "resp_ip $direct_ip"
+      - matches: "resp_ip $direct_ip"               #定义: sub_config/rule_set.yaml
         exec: fast_mark 21
-      - matches: "resp_ip $geoip_cn"
+      - matches: "resp_ip $geoip_cn"                #定义: sub_config/rule_set.yaml
         exec: fast_mark 21
       - matches: [fast_mark 21, "!flag cn_fakeip"]  # 直接返回刚才拿到的真实 IP
-        exec: $sequence_addrealiplist_exit
+        exec: $sequence_addrealiplist_exit          #定义: sub_config/forward_1.yaml
       - matches: [fast_mark 21, flag cn_fakeip]     # 改要国内 FakeIP
-        exec: $sequence_localfake_addlist_exit
+        exec: $sequence_localfake_addlist_exit      #定义: sub_config/forward_1.yaml
       - matches: fast_mark 21
         exec: exit
       # 3. 其他 IPv4：代理
       - matches: "resp_ip 0.0.0.0/0"
-        exec: $sequence_fakeip_addlist_exit
+        exec: $sequence_fakeip_addlist_exit         #定义: sub_config/forward_1.yaml
 
   # ---- 刷新分流缓存（requery）-------------------------------------------------------
   # 与普通查询的区别：不因记忆无V4/无V6 提前空答；没有 IP 时再问一次国外，并把确实没有 IPv4 的域名记为「记忆无V4」。
@@ -50,37 +50,37 @@ plugins:
     args:
       # 1. 向上游要真实应答
       - matches: flag core_mode=compat
-        exec: $sequence_local
+        exec: $sequence_local                       #定义: sub_config/forward_1.yaml
       - matches: flag core_mode=safe
-        exec: $sequence_google_node
+        exec: $sequence_google_node                 #定义: sub_config/forward_nocn_ecs.yaml
       - matches: "!resp_ip 0.0.0.0/0"               # 第一次就没有 IP：做标记（特殊域名的线索）
         exec: fast_mark 4
       - matches: "!resp_ip 0.0.0.0/0"               # 仅 requery 才查第 2 次（国外），用来给 fx168 这类域名分流
-        exec: $sequence_google
+        exec: $sequence_google                      #定义: sub_config/forward_1.yaml
       # 2. 根据应答找出确实没有 IPv4 的域名
-      - exec: $learn_sv4_seen                       # fast_mark 4 且应答有 IPv4：特殊域名
+      - exec: $learn_sv4_seen                       #fast_mark 4 且应答有 IPv4：特殊域名；定义: sub_config/route_learner.yaml
       - matches:
         - "rcode 0 3"
         - "!resp_ip 0.0.0.0/0"
         exec: fast_mark 20
       - matches: fast_mark 20
         exec:
-          - $learn_nov4_empty                       # 记忆无V4（SERVFAIL 等不算）
+          - $learn_nov4_empty                       #记忆无V4（SERVFAIL 等不算）；定义: sub_config/route_learner.yaml
           - drop_resp                               # 避免 cname 传递
           - reject 0                                # 只结束这个 exec 块，并设置 rcode
       - matches: fast_mark 20
         exec: exit                                  # 结束整个查询
       # 3. 应答含直连 IP 或国内 IP：直连，记入记忆直连，结束
-      - matches: "resp_ip $direct_ip"
+      - matches: "resp_ip $direct_ip"               #定义: sub_config/rule_set.yaml
         exec: fast_mark 21
-      - matches: "resp_ip $geoip_cn"
+      - matches: "resp_ip $geoip_cn"                #定义: sub_config/rule_set.yaml
         exec: fast_mark 21
       - matches: [fast_mark 21, "!flag cn_fakeip"]
-        exec: $sequence_addrealiplist_exit
+        exec: $sequence_addrealiplist_exit          #定义: sub_config/forward_1.yaml
       - matches: [fast_mark 21, flag cn_fakeip]
-        exec: $sequence_localfake_addlist_exit
+        exec: $sequence_localfake_addlist_exit      #定义: sub_config/forward_1.yaml
       - matches: fast_mark 21
         exec: exit
       # 4. 其他 IPv4：代理
       - matches: "resp_ip 0.0.0.0/0"
-        exec: $sequence_fakeip_addlist_exit
+        exec: $sequence_fakeip_addlist_exit         #定义: sub_config/forward_1.yaml

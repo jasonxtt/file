@@ -36,63 +36,63 @@ plugins:
     type: sequence
     args:
       - matches: fast_mark 9                        # realiplist：国外真实 IP
-        exec: $sequence_google_exit
+        exec: $sequence_google_exit                 #定义: sub_config/forward_1.yaml
       - matches: fast_mark 9
         exec: exit
       - matches:                                    # cnfakeipfilter：国内真实 IP（只在 cn_fakeip 开启时有这一层）
         - fast_mark 10
         - flag cn_fakeip
-        exec: $sequence_local_exit
+        exec: $sequence_local_exit                  #定义: sub_config/forward_1.yaml
       - matches:
         - fast_mark 10
         - flag cn_fakeip
         exec: exit
 
       - matches: fast_mark 7                        # 灰名单：代理
-        exec: $sequence_fakeip_addlist_exit
+        exec: $sequence_fakeip_addlist_exit         #定义: sub_config/forward_1.yaml
 
       - matches: [fast_mark 8, "!flag cn_fakeip"]   # 白名单：直连
-        exec: $sequence_local_addlist_exit
+        exec: $sequence_local_addlist_exit          #定义: sub_config/forward_1.yaml
       - matches: [fast_mark 8, flag cn_fakeip]
-        exec: $sequence_localfake_addlist_exit
+        exec: $sequence_localfake_addlist_exit      #定义: sub_config/forward_1.yaml
       - matches: fast_mark 8
         exec: exit
 
       - matches: fast_mark 15                       # 代理域名：代理
-        exec: $sequence_fakeip_addlist_exit
+        exec: $sequence_fakeip_addlist_exit         #定义: sub_config/forward_1.yaml
 
       - matches: [fast_mark 13, "!flag cn_fakeip"]  # 直连域名：直连
-        exec: $sequence_local_addlist_exit
+        exec: $sequence_local_addlist_exit          #定义: sub_config/forward_1.yaml
       - matches: [fast_mark 13, flag cn_fakeip]
-        exec: $sequence_localfake_addlist_exit
+        exec: $sequence_localfake_addlist_exit      #定义: sub_config/forward_1.yaml
       - matches: fast_mark 13
         exec: exit
 
       - matches: fast_mark 14                       # 非中国域名（geosite-geolocation-!cn）：代理
-        exec: $sequence_fakeip_addlist_exit
+        exec: $sequence_fakeip_addlist_exit         #定义: sub_config/forward_1.yaml
 
       - matches: [fast_mark 16, "!flag cn_fakeip"]  # 中国域名（geosite-cn）：直连
-        exec: $sequence_local_addlist_exit
+        exec: $sequence_local_addlist_exit          #定义: sub_config/forward_1.yaml
       - matches: [fast_mark 16, flag cn_fakeip]
-        exec: $sequence_localfake_addlist_exit
+        exec: $sequence_localfake_addlist_exit      #定义: sub_config/forward_1.yaml
       - matches: fast_mark 16
         exec: exit
 
       - matches: fast_mark 12                       # 记忆代理：代理（不再重复记忆）
-        exec: $sequence_fakeip_exit
+        exec: $sequence_fakeip_exit                 #定义: sub_config/forward_1.yaml
 
       - matches:                                    # 记忆直连：直连（不再重复记忆）
         - fast_mark 11
         - flag core_mode=compat
         - "!flag cn_fakeip"
-        exec: $sequence_local_exit
+        exec: $sequence_local_exit                  #定义: sub_config/forward_1.yaml
       - matches:                                    # 安全模式：路由仍是直连，但真实 IP 只向国外 DNS 要，不问国内
         - fast_mark 11
         - flag core_mode=safe
         - "!flag cn_fakeip"
-        exec: $sequence_google_node
+        exec: $sequence_google_node                 #定义: sub_config/forward_nocn_ecs.yaml
       - matches: [fast_mark 11, flag cn_fakeip]     # 国内 FakeIP 由外部 FakeIP 服务给出，两种模式相同
-        exec: $sequence_localfake_exit
+        exec: $sequence_localfake_exit              #定义: sub_config/forward_1.yaml
       - matches: fast_mark 11
         exec: exit
 
@@ -102,64 +102,64 @@ plugins:
     type: sequence
     args:
       - matches: fast_mark 9
-        exec: $sequence_google_exit
+        exec: $sequence_google_exit                 #定义: sub_config/forward_1.yaml
       - matches: fast_mark 9
         exec: exit
       - matches:
         - fast_mark 10
         - flag cn_fakeip
-        exec: $sequence_local_exit_requery
+        exec: $sequence_local_exit_requery          #定义: sub_config/forward_1.yaml
       - matches:
         - fast_mark 10
         - flag cn_fakeip
         exec: exit
 
       - matches: fast_mark 7
-        exec: $sequence_fakeip_addlist_exit
+        exec: $sequence_fakeip_addlist_exit         #定义: sub_config/forward_1.yaml
 
       - matches: [fast_mark 8, "!flag cn_fakeip"]
-        exec: $sequence_local_addlist_exit_requery
+        exec: $sequence_local_addlist_exit_requery  #定义: sub_config/forward_1.yaml
       - matches: [fast_mark 8, flag cn_fakeip]
-        exec: $sequence_localfake_addlist_exit_requery
+        exec: $sequence_localfake_addlist_exit_requery  #定义: sub_config/forward_1.yaml
       - matches: fast_mark 8
         exec: exit
 
       - matches: fast_mark 15
-        exec: $sequence_fakeip_addlist_exit
+        exec: $sequence_fakeip_addlist_exit         #定义: sub_config/forward_1.yaml
 
       - matches: [fast_mark 13, "!flag cn_fakeip"]
-        exec: $sequence_local_addlist_exit_requery
+        exec: $sequence_local_addlist_exit_requery  #定义: sub_config/forward_1.yaml
       - matches: [fast_mark 13, flag cn_fakeip]
-        exec: $sequence_localfake_addlist_exit_requery
+        exec: $sequence_localfake_addlist_exit_requery  #定义: sub_config/forward_1.yaml
       - matches: fast_mark 13
         exec: exit
 
       - matches: fast_mark 14
-        exec: $sequence_fakeip_addlist_exit
+        exec: $sequence_fakeip_addlist_exit         #定义: sub_config/forward_1.yaml
 
       - matches: [fast_mark 16, "!flag cn_fakeip"]
-        exec: $sequence_local_addlist_exit_requery
+        exec: $sequence_local_addlist_exit_requery  #定义: sub_config/forward_1.yaml
       - matches: [fast_mark 16, flag cn_fakeip]
-        exec: $sequence_localfake_addlist_exit_requery
+        exec: $sequence_localfake_addlist_exit_requery  #定义: sub_config/forward_1.yaml
       - matches: fast_mark 16
         exec: exit
 
       - matches: fast_mark 12
-        exec: $sequence_fakeip_exit
+        exec: $sequence_fakeip_exit                 #定义: sub_config/forward_1.yaml
 
       - matches:
         - fast_mark 11
         - flag core_mode=compat
         - "!flag cn_fakeip"
-        exec: $sequence_local_exit_requery
+        exec: $sequence_local_exit_requery          #定义: sub_config/forward_1.yaml
       - matches:
         - fast_mark 11
         - flag core_mode=compat
         - flag cn_fakeip
-        exec: $sequence_localfake_exit_requery
+        exec: $sequence_localfake_exit_requery      #定义: sub_config/forward_1.yaml
       - matches:                                    # 安全模式：只问国外 DNS（cn_fakeip 开关在序列里判断）
         - fast_mark 11
         - flag core_mode=safe
-        exec: $sequence_foreign_exit_requery
+        exec: $sequence_foreign_exit_requery        #定义: sub_config/forward_1.yaml
       - matches: fast_mark 11
         exec: exit

@@ -24,7 +24,7 @@ plugins:
     args:
       show_when: flag dns_mode=fakeip           #只影响 WebUI：仅 FakeIP 分流时在上游设置与概览显示此组
       concurrent: 1
-      proxy: $main_proxy                        #本组条目可用 use_proxy: true 选择走代理（默认都不走）
+      proxy: $main_proxy                        #本组条目可用 use_proxy: true 选择走代理（默认都不走）；定义: sub_config/settings.yaml
       upstreams:
         - tag: sing-box
           addr: "udp://127.0.0.1:6666"
@@ -35,7 +35,7 @@ plugins:
     args:
       show_when: flag cn_fakeip                 #只影响 WebUI：仅「国内域名 FakeIP」开启时显示此组
       concurrent: 1
-      proxy: $main_proxy                        #本组条目可用 use_proxy: true 选择走代理（默认都不走）
+      proxy: $main_proxy                        #本组条目可用 use_proxy: true 选择走代理（默认都不走）；定义: sub_config/settings.yaml
       upstreams:
         - tag: cnfake
           addr: "udp://127.0.0.1:1053"
@@ -103,18 +103,18 @@ plugins:
       - matches:
         - fast_mark 19                              #A请求
         - "resp_ip 0.0.0.0/0"                       #有IP
-        - "!resp_ip $geoip_cn"                      #但是没有cn ip
+        - "!resp_ip $geoip_cn"                      #但是没有cn ip；定义: sub_config/rule_set.yaml
         - flag dns_mode=fakeip                      #FakeIP 分流：改问 sing-box 要 FakeIP；定义: sub_config/flags.yaml
         exec:
           - $learn_proxy_requery                    #记忆代理 + 特殊域名；定义: sub_config/route_learner.yaml
           - drop_resp
           - flow_setter sequence=sequence_local_addlist_exit_requery upstream=nocnfake
-          - $nocnfake
+          - $nocnfake                               #定义: 本文件
           - exit
       - matches:
         - fast_mark 19                              #A请求
         - "resp_ip 0.0.0.0/0"                       #有IP
-        - "!resp_ip $geoip_cn"                      #但是没有cn ip
+        - "!resp_ip $geoip_cn"                      #但是没有cn ip；定义: sub_config/rule_set.yaml
         - flag dns_mode=realip                      #RealIP 分流：保留国外真实 IP，不问 sing-box（否则 FakeIP 会进共用缓存）
         exec:
           - $learn_proxy_requery                    #记忆代理 + 特殊域名；定义: sub_config/route_learner.yaml
@@ -146,7 +146,7 @@ plugins:
       - exec: flow_setter sequence=sequence_localfake_addlist_exit upstream=cnfake
       - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml
-      - exec: $cnfake                               #定义: sub_config/forward_1.yaml
+      - exec: $cnfake                               #定义: 本文件
       - exec: ttl 5
       - exec: $learn_direct_listed                  #记忆直连（静态名单的名字）；定义: sub_config/route_learner.yaml
       - exec: exit
@@ -169,18 +169,18 @@ plugins:
       - matches:
         - fast_mark 19                              #A请求
         - "resp_ip 0.0.0.0/0"                       #有IP
-        - "!resp_ip $geoip_cn"                      #但是没有cn ip
+        - "!resp_ip $geoip_cn"                      #但是没有cn ip；定义: sub_config/rule_set.yaml
         - flag dns_mode=fakeip                      #FakeIP 分流：改问 sing-box 要 FakeIP；定义: sub_config/flags.yaml
         exec:
           - $learn_proxy_requery                    #记忆代理 + 特殊域名；定义: sub_config/route_learner.yaml
           - drop_resp
           - flow_setter sequence=sequence_localfake_addlist_exit_requery upstream=nocnfake
-          - $nocnfake
+          - $nocnfake                               #定义: 本文件
           - exit
       - matches:
         - fast_mark 19                              #A请求
         - "resp_ip 0.0.0.0/0"                       #有IP
-        - "!resp_ip $geoip_cn"                      #但是没有cn ip
+        - "!resp_ip $geoip_cn"                      #但是没有cn ip；定义: sub_config/rule_set.yaml
         - flag dns_mode=realip                      #RealIP 分流：保留国外真实 IP，不问 sing-box（否则 FakeIP 会进共用缓存）
         exec:
           - $learn_proxy_requery                    #记忆代理 + 特殊域名；定义: sub_config/route_learner.yaml
@@ -189,7 +189,7 @@ plugins:
       - exec: flow_setter sequence=sequence_localfake_addlist_exit_requery upstream=cnfake
       - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml
-      - exec: $cnfake                               #定义: sub_config/forward_1.yaml
+      - exec: $cnfake                               #定义: 本文件
       - exec: ttl 5
       - exec: $learn_direct_listed                  #记忆直连（静态名单的名字）；定义: sub_config/route_learner.yaml
       - exec: exit
@@ -201,7 +201,7 @@ plugins:
       - exec: flow_setter sequence=sequence_localfake_exit upstream=cnfake
       - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml
-      - exec: $cnfake                               #定义: sub_config/forward_1.yaml
+      - exec: $cnfake                               #定义: 本文件
       - exec: ttl 5
       - exec: exit
 
@@ -222,7 +222,7 @@ plugins:
       - exec: flow_setter sequence=sequence_localfake_exit_requery upstream=cnfake
       - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml
-      - exec: $cnfake                               #定义: sub_config/forward_1.yaml
+      - exec: $cnfake                               #定义: 本文件
       - exec: ttl 5
       - exec: exit
 
@@ -231,11 +231,11 @@ plugins:
   - tag: sequence_foreign_exit_requery
     type: sequence
     args:
-      - exec: $sequence_google_node
+      - exec: $sequence_google_node                 #定义: sub_config/forward_nocn_ecs.yaml
       - matches:
         - qtype 1                                   #A请求
         - "!resp_ip 0.0.0.0/0"
-        exec: $sequence_google
+        exec: $sequence_google                      #定义: 本文件
       - exec: $learn_nov4_empty                     #A 无 IPv4 且 rcode 为 0/3：记忆无V4；定义: sub_config/route_learner.yaml
       - exec: $learn_nov6_empty                     #AAAA 无全球单播 IPv6 且 rcode 为 0/3：记忆无V6；定义: sub_config/route_learner.yaml
       - matches: flag cn_fakeip
@@ -246,7 +246,7 @@ plugins:
         exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml
       - matches: flag cn_fakeip
         exec:
-          - $cnfake                                 #定义: sub_config/forward_1.yaml
+          - $cnfake                                 #定义: 本文件
           - ttl 5
       - exec: exit
 
@@ -276,7 +276,7 @@ plugins:
     type: sequence
     args:
       - exec: flow_setter sequence=sequence_proxy_fakeip_addlist_exit upstream=nocnfake
-      - exec: $nocnfake                             #定义: sub_config/forward_1.yaml
+      - exec: $nocnfake                             #定义: 本文件
       - exec: $learn_proxy                          #记忆代理；定义: sub_config/route_learner.yaml
       - exec: exit
 
@@ -285,7 +285,7 @@ plugins:
     type: sequence
     args:
       - exec: flow_setter sequence=sequence_proxy_fakeip_exit upstream=nocnfake
-      - exec: $nocnfake                             #定义: sub_config/forward_1.yaml
+      - exec: $nocnfake                             #定义: 本文件
       - exec: exit
 
 #RealIP 分流：代理域名返回国外真实 IP，并加入记忆代理清单
@@ -293,7 +293,7 @@ plugins:
     type: sequence
     args:
       - exec: flow_setter sequence=sequence_proxy_realip_addlist_exit upstream=foreign
-      - exec: $foreign
+      - exec: $foreign                              #定义: sub_config/forward_nocn.yaml
       - exec: cname_remover
       - exec: $learn_proxy                          #记忆代理；定义: sub_config/route_learner.yaml
       - exec: exit
@@ -303,7 +303,7 @@ plugins:
     type: sequence
     args:
       - exec: flow_setter sequence=sequence_proxy_realip_exit upstream=foreign
-      - exec: $foreign
+      - exec: $foreign                              #定义: sub_config/forward_nocn.yaml
       - exec: cname_remover
       - exec: exit
 
@@ -312,9 +312,9 @@ plugins:
     type: sequence
     args:
       - matches: flag dns_mode=fakeip
-        exec: $sequence_proxy_fakeip_addlist_exit
+        exec: $sequence_proxy_fakeip_addlist_exit   #定义: 本文件
       - matches: flag dns_mode=realip
-        exec: $sequence_proxy_realip_addlist_exit
+        exec: $sequence_proxy_realip_addlist_exit   #定义: 本文件
       - exec: exit
 
 #代理域名响应入口：根据 DNS 分流模式返回 FakeIP 或 RealIP 后结束
@@ -322,16 +322,16 @@ plugins:
     type: sequence
     args:
       - matches: flag dns_mode=fakeip
-        exec: $sequence_proxy_fakeip_exit
+        exec: $sequence_proxy_fakeip_exit           #定义: 本文件
       - matches: flag dns_mode=realip
-        exec: $sequence_proxy_realip_exit
+        exec: $sequence_proxy_realip_exit           #定义: 本文件
       - exec: exit
 
 #国内上游入口：rewrite 的 dns: $sequence_local_in 在进程内调用它，不占用端口
   - tag: sequence_local_in
     type: sequence
     args:
-      - exec: $sequence_local                       #定义: sub_config/forward_1.yaml
+      - exec: $sequence_local                       #定义: 本文件
       - exec: flow_setter sequence=sequence_local_in upstream=domestic
 
 #优先国外realip，失败则回退国内，不带缓存
