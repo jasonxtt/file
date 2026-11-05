@@ -14,7 +14,7 @@ plugins:
     type: feature_flag
     args:
       label: 核心运行模式
-      description: 兼容模式：列表外域名先问国内 DNS，性能更高；安全模式：列表外域名先带 ECS 问国外 DNS，防泄露和劫持能力更强。
+      description: 兼容模式：列表外域名先问国内 DNS，性能更高；安全模式：列表外域名只问国外 DNS（带 ECS），国外失败或没有结果也不回退国内，防泄露和劫持能力更强。你明确写进名单的域名、指定直连的客户端、重写目标和专属分流组仍按各自设置使用国内 DNS。
       section: mode
       kind: choice
       options:
@@ -63,7 +63,7 @@ plugins:
     type: feature_flag
     args:
       label: DDNS 优先国外解析
-      description: DDNS 名单内的域名优先用国外上游解析（无缓存，国外失败回退国内）。
+      description: DDNS 名单内的域名优先用国外上游解析（无缓存）。兼容模式下国外失败会回退国内；安全模式下只用国外。
       section: mode
       kind: bool
       default: false

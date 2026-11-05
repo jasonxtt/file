@@ -1,269 +1,51 @@
+# ==============================================================================
+# 列表外域名的 AAAA 查询（fast_mark 17：没有命中任何名单，也没有学习记录）
+# ==============================================================================
+# 谁调用：config_custom.yaml 的 sequence_6666 / sequence_requery，在 process_listed.yaml 的名单分流之后调用。
+#         普通查询和刷新分流缓存共用这一个序列（AAAA 在两种情况下的处理完全一样）。
+# 做什么：先向上游要一份真实应答，再看应答里的 IPv6 决定去向：
+#           应答没有全球单播 IPv6（rcode 为 0/3）→ 记入「记忆无V6」，返回空应答
+#           应答含 direct_ip 或 geoip_cn 的 IP    → 直连：记入「记忆直连」，返回国内 IP（cn_fakeip 开启则要国内 FakeIP）
+#           其他                                  → 代理：按 DNS 分流模式返回 FakeIP 或国外真实 IP，记入「记忆代理」
+#         第一次问谁由「核心运行模式」决定：兼容模式问国内；安全模式问国外（带 ECS）。
+#         SERVFAIL 等失败不会被当成「没有 IPv6」记下来。
 plugins:
-#处理AAAA请求
-  - tag: sequence_ipv6_cnfakeoff
+  - tag: sequence_unlisted_v6
     type: sequence
     args:
-      - matches: fast_mark 9                        #!cn fakeip filter
-        exec: $sequence_google_exit                 #向国外dns请求realip并结束；定义: sub_config/forward_1.yaml:255
-      - matches: fast_mark 9                        #序列内含有cache插件时，子序列内exit无法结束主序列，仅能结束cache更新序列
-        exec: exit
-      - matches: fast_mark 7                        #灰名单
-        exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 8                        #白名单
-        exec: $sequence_local_addlist_exit_v6       #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:62
-      - matches: fast_mark 8
-        exec: exit
-      - matches: fast_mark 15                       #代理域名
-        exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 13                       #直连域名
-        exec: $sequence_local_addlist_exit_v6       #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:62
-      - matches: fast_mark 13
-        exec: exit
-      - matches: fast_mark 14                       #geosite-geolocation-!cn
-        exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 16                       #中国域名
-        exec: $sequence_local_addlist_exit_v6       #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:62
-      - matches: fast_mark 16
-        exec: exit
-      - matches: fast_mark 12                       #记忆代理
-        exec: $sequence_fakeip_exit                 #请求国外fakeip并结束；定义: sub_config/forward_1.yaml:274
-      - matches: fast_mark 11                       #记忆直连
-        exec: $sequence_local_exit                  #请求国内fakeip并结束；定义: sub_config/forward_1.yaml:20
-      - matches: fast_mark 11
-        exec: exit
-#列表外域名处理，后面默认都是fast_mark 17的逻辑
-##先向上游请求真实的dns响应
-      - matches: flag core_mode=compat              #兼容模式；定义: sub_config/flags.yaml
-        exec: $sequence_local                       #表外域名先发到国内查第1次；定义: sub_config/forward_1.yaml:112
-      - matches: flag core_mode=safe                #安全模式；定义: sub_config/flags.yaml
-        exec: $sequence_google_node                 #表外域名先带ecs查国外第1次；定义: sub_config/forward_nocn_ecs.yaml:12
-      - matches:
-        - flag core_mode=safe                       #安全模式；定义: sub_config/flags.yaml
-        - "!resp_ip 2000::/3"                       #还是没有IP
-        exec: $sequence_local                       #安全模式国内dns查第2次；定义: sub_config/forward_1.yaml:112
-##再根据响应找出确实无IP的域名
+      # 1. 向上游要真实应答
+      - matches: flag core_mode=compat              # 兼容模式：国内 DNS
+        exec: $sequence_local
+      - matches: flag core_mode=safe                # 安全模式：国外 DNS（带 ECS）
+        exec: $sequence_google_node
+      # 2. 确实没有 IPv6 的域名：记忆无V6，返回空应答
       - matches:
         - "rcode 0 3"
         - "!resp_ip 2000::/3"
-        exec: fast_mark 20                          #做出标记
-      - matches: fast_mark 20                       #上游dns未返回ip
-        exec:
-          - $learn_nov6_empty                       #记忆无V6（已含 rcode 0/3 与无全球单播 IPv6 判断）
-          - drop_resp                               #避免cname传递
-          - reject 0                                #此处仅跳出当前exec隐藏子序列并设置rcode
+        exec: fast_mark 20
       - matches: fast_mark 20
-        exec: exit                                  #跳出所有处理逻辑结束处理
-##有ip响应的，对比直连IP与geoipcn后再处理
-      - matches: "resp_ip $direct_ip"               #dns响应含有指定直连的IP
-        exec: $sequence_addrealiplist_exit          #请求国内realip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:122
-      - matches: "resp_ip $geoip_cn"                #标记列表外域名上游dns获取了!cn ip
-        exec: $sequence_addrealiplist_exit          #请求国内realip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:122
-      - exec: $sequence_fakeip_addlist_exit         #前面没有v6 ip的已被过滤并结束，此处都有非cn v6 ip；定义: sub_config/forward_1.yaml:265
-
-#cnfake开关打开的逻辑
-  - tag: sequence_ipv6_cnfakeon
-    type: sequence
-    args:
-      - matches: fast_mark 9                        #!cn fakeip filter
-        exec: $sequence_google_exit                 #向国外dns请求realip并结束；定义: sub_config/forward_1.yaml:255
-      - matches: fast_mark 9
-        exec: exit
-      - matches: fast_mark 10                       #cn fakeip filter
-        exec: $sequence_local_exit                  #单纯请求国内realip并结束；定义: sub_config/forward_1.yaml:20
-      - matches: fast_mark 10
-        exec: exit
-      - matches: fast_mark 7                        #灰名单
-        exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 8                        #白名单
-        exec: $sequence_localfake_addlist_exit      #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:162
-      - matches: fast_mark 8
-        exec: exit
-      - matches: fast_mark 15                       #代理域名
-        exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 13                       #直连域名
-        exec: $sequence_localfake_addlist_exit      #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:162
-      - matches: fast_mark 13
-        exec: exit
-      - matches: fast_mark 14                       #geosite-geolocation-!cn
-        exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 16                       #中国域名
-        exec: $sequence_localfake_addlist_exit      #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:162
-      - matches: fast_mark 16
-        exec: exit
-      - matches: fast_mark 12                       #记忆代理
-        exec: $sequence_fakeip_exit                 #请求国外fakeip并结束；定义: sub_config/forward_1.yaml:274
-      - matches: fast_mark 11                       #记忆直连
-        exec: $sequence_localfake_exit              #请求国内fakeip并结束；定义: sub_config/forward_1.yaml:212
-      - matches: fast_mark 11
-        exec: exit
-#列表外域名处理，后面默认都是fast_mark 17的逻辑
-##先向上游请求真实的dns响应
-      - matches: flag core_mode=compat              #兼容模式；定义: sub_config/flags.yaml
-        exec: $sequence_local                       #表外域名先发到国内查第1次；定义: sub_config/forward_1.yaml:112
-      - matches: flag core_mode=safe                #安全模式；定义: sub_config/flags.yaml
-        exec: $sequence_google_node                 #表外域名先带ecs查国外第1次；定义: sub_config/forward_nocn_ecs.yaml:12
+        exec:
+          - $learn_nov6_empty
+          - drop_resp                               # 避免 cname 传递
+          - reject 0                                # 只结束这个 exec 块，并设置 rcode
+      - matches: fast_mark 20
+        exec: exit                                  # 结束整个查询
+      # 安全模式只问国外：国外失败（SERVFAIL、REFUSED 等，既没有 IPv6 又不是正常的空应答）时原样返回错误，
+      # 不当作代理域名，也不记忆。（兼容模式沿用原有行为，不在这里拦截。）
       - matches:
-        - flag core_mode=safe                       #安全模式；定义: sub_config/flags.yaml
-        - "!resp_ip 2000::/3"                       #还是没有IP
-        exec: $sequence_local                       #安全模式国内dns查第2次；定义: sub_config/forward_1.yaml:112
-##再根据响应找出确实无IP的域名
-      - matches:
-        - "rcode 0 3"
+        - flag core_mode=safe
         - "!resp_ip 2000::/3"
-        exec: fast_mark 20                          #做出标记
-      - matches: fast_mark 20                       #上游dns未返回ip
-        exec:
-          - $learn_nov6_empty                       #记忆无V6（已含 rcode 0/3 与无全球单播 IPv6 判断）
-          - drop_resp                               #避免cname传递
-          - reject 0                                #此处仅跳出当前exec隐藏子序列并设置rcode
-      - matches: fast_mark 20
-        exec: exit                                  #跳出所有处理逻辑结束处理
-##有ip响应的，对比直连IP与geoipcn后再处理
-      - matches: "resp_ip $direct_ip"               #dns响应含有指定直连的IP
+        exec: exit
+      # 3. 应答含直连 IP 或国内 IP：直连，记入记忆直连，结束
+      - matches: "resp_ip $direct_ip"
         exec: fast_mark 21
-      - matches: fast_mark 21
-        exec: $sequence_localfake_addlist_exit      #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:162
-      - matches: fast_mark 21
-        exec: exit
-      - matches: "resp_ip $geoip_cn"                #标记列表外域名上游dns获取了!cn ip
+      - matches: "resp_ip $geoip_cn"
         exec: fast_mark 21
-      - matches: fast_mark 21
-        exec: $sequence_localfake_addlist_exit      #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:162
-      - matches: fast_mark 21
-        exec: exit
-      - exec: $sequence_fakeip_addlist_exit         #前面没有v6 ip的已被过滤并结束，此处都有非cn v6 ip；定义: sub_config/forward_1.yaml:265
-
-#刷新分流缓存时使用
-#cnfake开关关闭的逻辑
-  - tag: sequence_ipv6_cnfakeoff_requery
-    type: sequence
-    args:
-      - matches: fast_mark 9                        #!cn fakeip filter
-        exec: $sequence_google_exit                 #向国外dns请求realip并结束；定义: sub_config/forward_1.yaml:255
-      - matches: fast_mark 9
-        exec: exit
-      - matches: fast_mark 7                        #灰名单
-        exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 8                        #白名单
-        exec: $sequence_local_addlist_exit_requery  #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:77
-      - matches: fast_mark 8
-        exec: exit
-      - matches: fast_mark 15                       #代理域名
-        exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 13                       #直连域名
-        exec: $sequence_local_addlist_exit_requery  #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:77
-      - matches: fast_mark 13
-        exec: exit
-      - matches: fast_mark 14                       #geosite-geolocation-!cn
-        exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 16                       #中国域名
-        exec: $sequence_local_addlist_exit_requery  #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:77
-      - matches: fast_mark 16
-        exec: exit
-      - matches: fast_mark 12                       #记忆代理
-        exec: $sequence_fakeip_exit                 #请求国外fakeip并结束；定义: sub_config/forward_1.yaml:274
-      - matches: fast_mark 11                       #记忆直连
-        exec: $sequence_local_exit_requery          #请求国内realip并结束；定义: sub_config/forward_1.yaml:29
-      - matches: fast_mark 11
-        exec: exit
-#列表外域名处理，后面默认都是fast_mark 17的逻辑
-##先向上游请求真实的dns响应
-      - matches: flag core_mode=compat              #兼容模式；定义: sub_config/flags.yaml
-        exec: $sequence_local                       #表外域名先发到国内查第1次；定义: sub_config/forward_1.yaml:112
-      - matches: flag core_mode=safe                #安全模式；定义: sub_config/flags.yaml
-        exec: $sequence_google_node                 #表外域名先带ecs查国外第1次；定义: sub_config/forward_nocn_ecs.yaml:12
-      - matches:
-        - flag core_mode=safe                       #安全模式；定义: sub_config/flags.yaml
-        - "!resp_ip 2000::/3"                       #还是没有IP
-        exec: $sequence_local                       #安全模式国内dns查第2次；定义: sub_config/forward_1.yaml:112
-##再根据响应找出确实无IP的域名
-      - matches:
-        - "rcode 0 3"
-        - "!resp_ip 2000::/3"
-        exec: fast_mark 20                          #做出标记
-      - matches: fast_mark 20                       #上游dns未返回ip
-        exec:
-          - $learn_nov6_empty                       #记忆无V6（已含 rcode 0/3 与无全球单播 IPv6 判断）
-          - drop_resp                               #避免cname传递
-          - reject 0                                #此处仅跳出当前exec隐藏子序列并设置rcode
-      - matches: fast_mark 20
-        exec: exit                                  #跳出所有处理逻辑结束处理
-##有ip响应的，对比直连IP与geoipcn后再处理
-      - matches: "resp_ip $direct_ip"               #dns响应含有指定直连的IP
-        exec: $sequence_addrealiplist_exit          #请求国内realip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:122
-      - matches: "resp_ip $geoip_cn"                #标记列表外域名上游dns获取了!cn ip
-        exec: $sequence_addrealiplist_exit          #请求国内realip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:122
-      - exec: $sequence_fakeip_addlist_exit         #前面没有v6 ip的已被过滤并结束，此处都有非cn v6 ip；定义: sub_config/forward_1.yaml:265
-
-#cnfake开关打开的逻辑
-  - tag: sequence_ipv6_cnfakeon_requery
-    type: sequence
-    args:
-      - matches: fast_mark 9                        #!cn fakeip filter
-        exec: $sequence_google_exit                 #向国外dns请求realip并结束；定义: sub_config/forward_1.yaml:255
-      - matches: fast_mark 9
-        exec: exit
-      - matches: fast_mark 10                       #cn fakeip filter
-        exec: $sequence_local_exit_requery          #单纯请求国内realip并结束；定义: sub_config/forward_1.yaml:29
-      - matches: fast_mark 10
-        exec: exit
-      - matches: fast_mark 7                        #灰名单
-        exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 8                        #白名单
-        exec: $sequence_localfake_addlist_exit_requery  #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:173
-      - matches: fast_mark 8
-        exec: exit
-      - matches: fast_mark 15                       #代理域名
-        exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 13                       #直连域名
-        exec: $sequence_localfake_addlist_exit_requery  #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:173
-      - matches: fast_mark 13
-        exec: exit
-      - matches: fast_mark 14                       #geosite-geolocation-!cn
-        exec: $sequence_fakeip_addlist_exit         #向sing-box请求fakeip加入清单并结束；定义: sub_config/forward_1.yaml:265
-      - matches: fast_mark 16                       #中国域名
-        exec: $sequence_localfake_addlist_exit_requery  #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:173
-      - matches: fast_mark 16
-        exec: exit
-      - matches: fast_mark 12                       #记忆代理
-        exec: $sequence_fakeip_exit                 #请求国外fakeip并结束；定义: sub_config/forward_1.yaml:274
-      - matches: fast_mark 11                       #记忆直连
-        exec: $sequence_localfake_exit_requery      #请求国内fakeip并结束；定义: sub_config/forward_1.yaml:221
-      - matches: fast_mark 11
-        exec: exit
-#列表外域名处理，后面默认都是fast_mark 17的逻辑
-##先向上游请求真实的dns响应
-      - matches: flag core_mode=compat              #兼容模式；定义: sub_config/flags.yaml
-        exec: $sequence_local                       #表外域名先发到国内查第1次；定义: sub_config/forward_1.yaml:112
-      - matches: flag core_mode=safe                #安全模式；定义: sub_config/flags.yaml
-        exec: $sequence_google_node                 #表外域名先带ecs查国外第1次；定义: sub_config/forward_nocn_ecs.yaml:12
-      - matches:
-        - flag core_mode=safe                       #安全模式；定义: sub_config/flags.yaml
-        - "!resp_ip 2000::/3"                       #还是没有IP
-        exec: $sequence_local                       #安全模式国内dns查第2次；定义: sub_config/forward_1.yaml:112
-##再根据响应找出确实无IP的域名
-      - matches:
-        - "rcode 0 3"
-        - "!resp_ip 2000::/3"
-        exec: fast_mark 20                          #做出标记
-      - matches: fast_mark 20                       #上游dns未返回ip
-        exec:
-          - $learn_nov6_empty                       #记忆无V6（已含 rcode 0/3 与无全球单播 IPv6 判断）
-          - drop_resp                               #避免cname传递
-          - reject 0                                #此处仅跳出当前exec隐藏子序列并设置rcode
-      - matches: fast_mark 20
-        exec: exit                                  #跳出所有处理逻辑结束处理
-##有ip响应的，对比直连IP与geoipcn后再处理
-      - matches: "resp_ip $direct_ip"               #dns响应含有指定直连的IP
-        exec: fast_mark 21
-      - matches: fast_mark 21
-        exec: $sequence_localfake_addlist_exit      #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:162
+      - matches: [fast_mark 21, "!flag cn_fakeip"]
+        exec: $sequence_addrealiplist_exit
+      - matches: [fast_mark 21, flag cn_fakeip]
+        exec: $sequence_localfake_addlist_exit
       - matches: fast_mark 21
         exec: exit
-      - matches: "resp_ip $geoip_cn"                #标记列表外域名上游dns获取了!cn ip
-        exec: fast_mark 21
-      - matches: fast_mark 21
-        exec: $sequence_localfake_addlist_exit      #请求国内fakeip并加入国内域名列表后结束；定义: sub_config/forward_1.yaml:162
-      - matches: fast_mark 21
-        exec: exit
-      - exec: $sequence_fakeip_addlist_exit         #前面没有v6 ip的已被过滤并结束，此处都有非cn v6 ip；定义: sub_config/forward_1.yaml:265
+      # 4. 其余的都有非国内 IPv6（没有 IPv6 的在第 2 步已经结束）：代理
+      - exec: $sequence_fakeip_addlist_exit

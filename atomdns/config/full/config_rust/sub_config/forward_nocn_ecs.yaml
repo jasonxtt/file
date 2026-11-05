@@ -16,7 +16,7 @@ plugins:
     type: sequence
     args:
       - exec: ecs $client_ecs
-      - exec: $cache_google_node                    #定义: sub_config/cache.yaml:44
+      - exec: $cache_google_node                    #定义: sub_config/cache.yaml
       - exec: flow_setter sequence=sequence_google_node upstream=foreignecs
-      - exec: $foreignecs                           #定义: sub_config/forward_nocn_ecs.yaml:4
+      - exec: $foreignecs                           #定义: sub_config/forward_nocn_ecs.yaml
       - exec: cname_remover

@@ -1,3 +1,21 @@
+# ==============================================================================
+# 结果序列：一次查询的最后一步
+# ==============================================================================
+# process_listed.yaml / process_v4.yaml / process_v6.yaml 决定「这个域名该直连还是代理」之后，调用这里的序列去执行：
+# 查哪个上游、要不要先看缓存、要不要把结果记入学习名单、最后 exit 结束整个查询。
+# 每个序列开头的 flow_setter 把「走了哪个序列、哪个上游」写进审计记录。
+#
+# 命名规则：sequence_<去向>[_addlist][_exit][_requery]
+#   去向   local       国内 DNS，返回真实 IP
+#          localfake   国内 FakeIP（外部 FakeIP 服务，cn_fakeip 开启时用）
+#          google      国外 DNS，返回真实 IP（google_node 带 ECS，在 forward_nocn_ecs.yaml）
+#          fakeip      代理：按「DNS 分流模式」给 FakeIP（proxy_fakeip）或国外真实 IP（proxy_realip）
+#   addlist  同时把域名记入学习名单（直连类记「记忆直连」，代理类记「记忆代理」）
+#   exit     最后执行 exit 结束整个查询
+#   requery  刷新分流缓存时用的版本：国内没有结果会再问国外，并记忆无 V4 / 无 V6 / 特殊域名
+# 带缓存（cache_cn / cache_google / cache_cnmihomo）的序列命中缓存时会提前把结果交回调用者，调用者需要自己再 exit。
+#
+# 本文件的顺序：上游组（nocnfake、cnfake）→ 国内 → 国内 FakeIP → 国外 → 代理（FakeIP / 真实 IP）→ 国内入口。
 plugins:
 #使用前面定义的内部dns服务器，并定义可复用的序列，文件名中的1代表了层级
 #转发请求至sing-box/mihome dns请求fakeip
@@ -28,8 +46,8 @@ plugins:
     args:
       - exec: flow_setter sequence=sequence_local_exit upstream=domestic
       - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
-        exec: $cache_cn                             #定义: sub_config/cache.yaml:27
-      - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
+        exec: $cache_cn                             #定义: sub_config/cache.yaml
+      - exec: $domestic                             #定义: sub_config/forward_local.yaml
       - exec: cname_remover
       - exec: exit
 
@@ -38,15 +56,15 @@ plugins:
     args:
       - exec: flow_setter sequence=sequence_local_exit_requery upstream=domestic
       - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
-        exec: $cache_cn                             #定义: sub_config/cache.yaml:27
-      - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
+        exec: $cache_cn                             #定义: sub_config/cache.yaml
+      - exec: $domestic                             #定义: sub_config/forward_local.yaml
       - exec: cname_remover
       - matches:
         - qtype 1                                   #A请求
         - "!resp_ip 0.0.0.0/0"
         exec:
           - flow_setter sequence=sequence_local_exit_requery upstream=foreign
-          - $foreign                                #定义: sub_config/forward_nocn.yaml:4
+          - $foreign                                #定义: sub_config/forward_nocn.yaml
       - exec: $learn_nov4_empty                     #A 无 IPv4 且 rcode 为 0/3：记忆无V4；定义: sub_config/route_learner.yaml
       - exec: $learn_nov6_empty                     #AAAA 无全球单播 IPv6 且 rcode 为 0/3：记忆无V6；定义: sub_config/route_learner.yaml
       - exec: exit
@@ -57,22 +75,11 @@ plugins:
     args:
       - exec: flow_setter sequence=sequence_local_addlist_exit upstream=domestic
       - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
-        exec: $cache_cn                             #定义: sub_config/cache.yaml:27
-      - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
+        exec: $cache_cn                             #定义: sub_config/cache.yaml
+      - exec: $domestic                             #定义: sub_config/forward_local.yaml
       - exec: cname_remover
       - exec: $learn_direct_listed                  #记忆直连（静态名单的名字）；定义: sub_config/route_learner.yaml
-      - exec: exit
-
-  - tag: sequence_local_addlist_exit_v6
-    type: sequence
-    args:
-      - exec: flow_setter sequence=sequence_local_addlist_exit_v6 upstream=domestic
-      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
-        exec: $cache_cn                             #定义: sub_config/cache.yaml:27
-      - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
-      - exec: cname_remover
-      - exec: $learn_direct_listed                  #记忆直连（静态名单的名字）；定义: sub_config/route_learner.yaml
-      - exec: $learn_nov6_empty                     #AAAA 无全球单播 IPv6 且 rcode 为 0/3：记忆无V6；定义: sub_config/route_learner.yaml
+      - exec: $learn_nov6_empty                     #AAAA 无全球单播 IPv6 且 rcode 为 0/3：记忆无V6（A 查询时什么都不做）；定义: sub_config/route_learner.yaml
       - exec: exit
 
   - tag: sequence_local_addlist_exit_requery
@@ -80,8 +87,8 @@ plugins:
     args:
       - exec: flow_setter sequence=sequence_local_addlist_exit_requery upstream=domestic
       - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
-        exec: $cache_cn                             #定义: sub_config/cache.yaml:27
-      - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
+        exec: $cache_cn                             #定义: sub_config/cache.yaml
+      - exec: $domestic                             #定义: sub_config/forward_local.yaml
       - exec: cname_remover
       - exec: $learn_nov6_empty                     #AAAA 无全球单播 IPv6 且 rcode 为 0/3：记忆无V6；定义: sub_config/route_learner.yaml
       - matches:
@@ -91,7 +98,7 @@ plugins:
       - matches: fast_mark 19
         exec:
           - flow_setter sequence=sequence_local_addlist_exit_requery upstream=foreign
-          - $foreign                                #定义: sub_config/forward_nocn.yaml:4
+          - $foreign                                #定义: sub_config/forward_nocn.yaml
       - exec: $learn_nov4_empty                     #A 无 IPv4 且 rcode 为 0/3：记忆无V4；定义: sub_config/route_learner.yaml
       - matches:
         - fast_mark 19                              #A请求
@@ -120,8 +127,8 @@ plugins:
     args:
       - exec: flow_setter sequence=sequence_local upstream=domestic
       - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
-        exec: $cache_cn                             #定义: sub_config/cache.yaml:27
-      - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
+        exec: $cache_cn                             #定义: sub_config/cache.yaml
+      - exec: $domestic                             #定义: sub_config/forward_local.yaml
       - exec: cname_remover
 
 
@@ -138,8 +145,8 @@ plugins:
     args:
       - exec: flow_setter sequence=sequence_localfake_addlist_exit upstream=cnfake
       - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
-        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
-      - exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
+        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml
+      - exec: $cnfake                               #定义: sub_config/forward_1.yaml
       - exec: ttl 5
       - exec: $learn_direct_listed                  #记忆直连（静态名单的名字）；定义: sub_config/route_learner.yaml
       - exec: exit
@@ -147,7 +154,7 @@ plugins:
   - tag: sequence_localfake_addlist_exit_requery
     type: sequence
     args:
-      - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
+      - exec: $domestic                             #定义: sub_config/forward_local.yaml
       - exec: cname_remover
       - exec: $learn_nov6_empty                     #AAAA 无全球单播 IPv6 且 rcode 为 0/3：记忆无V6；定义: sub_config/route_learner.yaml
       - matches:
@@ -157,7 +164,7 @@ plugins:
       - matches: fast_mark 19
         exec:
           - flow_setter sequence=sequence_localfake_addlist_exit_requery upstream=foreign
-          - $foreign                                #定义: sub_config/forward_nocn.yaml:4
+          - $foreign                                #定义: sub_config/forward_nocn.yaml
       - exec: $learn_nov4_empty                     #A 无 IPv4 且 rcode 为 0/3：记忆无V4；定义: sub_config/route_learner.yaml
       - matches:
         - fast_mark 19                              #A请求
@@ -181,8 +188,8 @@ plugins:
       - exec: drop_resp
       - exec: flow_setter sequence=sequence_localfake_addlist_exit_requery upstream=cnfake
       - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
-        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
-      - exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
+        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml
+      - exec: $cnfake                               #定义: sub_config/forward_1.yaml
       - exec: ttl 5
       - exec: $learn_direct_listed                  #记忆直连（静态名单的名字）；定义: sub_config/route_learner.yaml
       - exec: exit
@@ -193,30 +200,54 @@ plugins:
     args:
       - exec: flow_setter sequence=sequence_localfake_exit upstream=cnfake
       - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
-        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
-      - exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
+        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml
+      - exec: $cnfake                               #定义: sub_config/forward_1.yaml
       - exec: ttl 5
       - exec: exit
 
   - tag: sequence_localfake_exit_requery
     type: sequence
     args:
-      - exec: $domestic                             #定义: sub_config/forward_local.yaml:3
+      - exec: $domestic                             #定义: sub_config/forward_local.yaml
       - exec: cname_remover
       - matches:
         - qtype 1                                   #A请求
         - "!resp_ip 0.0.0.0/0"
         exec:
           - flow_setter sequence=sequence_localfake_exit_requery upstream=foreign
-          - $foreign                                #定义: sub_config/forward_nocn.yaml:4
+          - $foreign                                #定义: sub_config/forward_nocn.yaml
       - exec: $learn_nov4_empty                     #A 无 IPv4 且 rcode 为 0/3：记忆无V4；定义: sub_config/route_learner.yaml
       - exec: $learn_nov6_empty                     #AAAA 无全球单播 IPv6 且 rcode 为 0/3：记忆无V6；定义: sub_config/route_learner.yaml
       - exec: drop_resp
       - exec: flow_setter sequence=sequence_localfake_exit_requery upstream=cnfake
       - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
-        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml:63
-      - exec: $cnfake                               #定义: sub_config/forward_1.yaml:12
+        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml
+      - exec: $cnfake                               #定义: sub_config/forward_1.yaml
       - exec: ttl 5
+      - exec: exit
+
+#刷新分流缓存时，安全模式下「记忆直连」的域名：只向国外 DNS 要真实应答（先带 ECS，没有 IPv4 再问一次不带 ECS 的），
+#确认无 V4 / 无 V6 后记忆；cn_fakeip 开启时再改要国内 FakeIP。全程不问国内 DNS。
+  - tag: sequence_foreign_exit_requery
+    type: sequence
+    args:
+      - exec: $sequence_google_node
+      - matches:
+        - qtype 1                                   #A请求
+        - "!resp_ip 0.0.0.0/0"
+        exec: $sequence_google
+      - exec: $learn_nov4_empty                     #A 无 IPv4 且 rcode 为 0/3：记忆无V4；定义: sub_config/route_learner.yaml
+      - exec: $learn_nov6_empty                     #AAAA 无全球单播 IPv6 且 rcode 为 0/3：记忆无V6；定义: sub_config/route_learner.yaml
+      - matches: flag cn_fakeip
+        exec:
+          - drop_resp
+          - flow_setter sequence=sequence_foreign_exit_requery upstream=cnfake
+      - matches: [flag cn_fakeip, flag lazy_cache]
+        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml
+      - matches: flag cn_fakeip
+        exec:
+          - $cnfake                                 #定义: sub_config/forward_1.yaml
+          - ttl 5
       - exec: exit
 
 #缓存序列-列表外域名
@@ -225,8 +256,8 @@ plugins:
     args:
       - exec: flow_setter sequence=sequence_google upstream=foreign
       - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
-        exec: $cache_google                         #定义: sub_config/cache.yaml:36
-      - exec: $foreign                              #定义: sub_config/forward_nocn.yaml:4
+        exec: $cache_google                         #定义: sub_config/cache.yaml
+      - exec: $foreign                              #定义: sub_config/forward_nocn.yaml
       - exec: cname_remover
 
 #缓存序列-列表外域名
@@ -235,8 +266,8 @@ plugins:
     args:
       - exec: flow_setter sequence=sequence_google_exit upstream=foreign
       - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
-        exec: $cache_google                         #定义: sub_config/cache.yaml:36
-      - exec: $foreign                              #定义: sub_config/forward_nocn.yaml:4
+        exec: $cache_google                         #定义: sub_config/cache.yaml
+      - exec: $foreign                              #定义: sub_config/forward_nocn.yaml
       - exec: cname_remover
       - exec: exit
 
@@ -245,7 +276,7 @@ plugins:
     type: sequence
     args:
       - exec: flow_setter sequence=sequence_proxy_fakeip_addlist_exit upstream=nocnfake
-      - exec: $nocnfake                             #定义: sub_config/forward_1.yaml:4
+      - exec: $nocnfake                             #定义: sub_config/forward_1.yaml
       - exec: $learn_proxy                          #记忆代理；定义: sub_config/route_learner.yaml
       - exec: exit
 
@@ -254,7 +285,7 @@ plugins:
     type: sequence
     args:
       - exec: flow_setter sequence=sequence_proxy_fakeip_exit upstream=nocnfake
-      - exec: $nocnfake                             #定义: sub_config/forward_1.yaml:4
+      - exec: $nocnfake                             #定义: sub_config/forward_1.yaml
       - exec: exit
 
 #RealIP 分流：代理域名返回国外真实 IP，并加入记忆代理清单
@@ -300,7 +331,7 @@ plugins:
   - tag: sequence_local_in
     type: sequence
     args:
-      - exec: $sequence_local                       #定义: sub_config/forward_1.yaml:112
+      - exec: $sequence_local                       #定义: sub_config/forward_1.yaml
       - exec: flow_setter sequence=sequence_local_in upstream=domestic
 
 #优先国外realip，失败则回退国内，不带缓存
