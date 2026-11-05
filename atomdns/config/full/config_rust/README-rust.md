@@ -89,6 +89,9 @@
 - 默认只监听 53 和 API 9099。重写与刷新解析改为进程内调用序列（`rewrite` 的 `dns: $sequence_local_in`，`requery` 的 `resolver: $sequence_requery`），不再有 2222 / 3066；7777、8888、3333、4444、3077、3099、3111 及其死代码已删除。
 - 八个按 `cn_fakeip` 拆开的 A / AAAA 分流序列合并：名单内域名 → `process_listed.yaml`，列表外域名 → `sequence_unlisted_v4[_requery]` / `sequence_unlisted_v6`。`cn_fakeip` 用 flag 判断。兼容模式下与旧配置逐项对比无差别（`tools/config-diff`）。
 - 安全模式：列表外域名只问国外 DNS，国外无结果或失败不再回退国内；「记忆直连」的域名也改问国外取真实 IP；国外 AAAA 失败时原样返回错误，不再被当作代理域名；DDNS 开启「优先国外」时不再回退国内。你明确写进名单的域名、DDNS 默认解析、指定直连的客户端、重写目标和专属分流组仍使用国内 DNS。
+- 静态名单（白名单、直连域名、中国域名、灰名单、代理域名、非中国域名）的域名不再写「记忆直连 / 记忆代理」：流程里静态名单永远先于学习结果，这些记录用不上，只会占学习容量。`sequence_local_addlist_exit`、`sequence_localfake_addlist_exit` 删除，`learn_direct_listed` 删除；刷新用的 `sequence_local[fake]_addlist_exit_requery` 改名 `sequence_local[fake]_sv4_exit_requery`，`learn_proxy_requery` 改为只记特殊域名的 `learn_sv4_listed`。静态直连名单的 AAAA 仍记「无V6」（`sequence_local_exit` 里，cnfakeipfilter 和兼容模式的记忆直连也因此会记）。只有列表外探测（`process_v4.yaml` / `process_v6.yaml`）写「记忆直连 / 记忆代理」；`cn_fakeip` 开启时探测到的直连原因也改记为「探测到国内 IP」。
+- 其他查询类型（MX、TXT、SRV 等，`process_ot.yaml`）按与 A / AAAA 相同的名单优先级决定问国内还是国外：白名单、直连域名、中国域名、cnfakeipfilter（`cn_fakeip` 开启时）和兼容模式的记忆直连问国内，其余问国外。以前只有中国域名问国内。
+- `webinfo/requeryconfig.json` 的 `flush_rules` 去掉 5 条清空学习名单的 URL（程序从 schema 2 起就固定跳过它们），附带的运行状态重置为 `idle`。已安装的系统保留自己的文件。
 - 新版程序才能读这份配置；回退到旧程序时要换回旧配置包。
 
 ### 订阅集合改名（config schema 5，只改命中标签）：`rule_set.yaml`，另有注释改动：`process_v4.yaml`、`process_v6.yaml`、`route_learner.yaml`

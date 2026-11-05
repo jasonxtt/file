@@ -45,25 +45,22 @@ plugins:
           source: my_nov4rule
           ttl: 691200
 
-  # 静态名单（白名单/中国域名）里的名字，向国内应答后记为直连（速度：一次 mapper 匹配拿到多个 mark）
-  - tag: learn_direct_listed
-    type: route_learn
-    args: {label: "静态名单内的域名，国内应答", learner: route_learner, learn: [my_realiplist]}
+  # 静态名单（白名单、中国域名、灰名单等）里的名字不写记忆直连 / 记忆代理：流程里静态名单永远先于学习结果，记了也用不上。
 
-  # 探测应答含直连 IP 或国内 IP：记为直连
+  # 列表外探测，应答含直连 IP 或国内 IP：记为直连
   - tag: learn_direct_probed
     type: route_learn
     args: {label: "探测到国内 IP", learner: route_learner, learn: [my_realiplist]}
 
-  # 代理决定（灰名单/非中国域名/探测到非国内 IP）：记为代理
+  # 列表外探测，应答只有非国内 IP：记为代理
   - tag: learn_proxy
     type: route_learn
     args: {label: "走代理的域名", learner: route_learner, learn: [my_fakeiplist]}
 
-  # 刷新流程里国外应答含非国内 IPv4（条件在流程里，块内还有 drop_resp、再问 nocnfake、exit）：记为代理并记为特殊域名
-  - tag: learn_proxy_requery
+  # 刷新流程里静态直连名单的域名国内没有 IPv4、国外应答含非国内 IPv4（条件在流程里，块内还有 drop_resp、再问 nocnfake、exit）：特殊域名
+  - tag: learn_sv4_listed
     type: route_learn
-    args: {label: "刷新时国外应答含非国内 IPv4", learner: route_learner, learn: [my_fakeiplist, my_sv4list]}
+    args: {label: "刷新时国内无 IPv4、国外有非国内 IPv4", learner: route_learner, learn: [my_sv4list]}
 
   # 刷新流程里 fast_mark 4（首轮无 IP，或该名字已是特殊域名）且应答有 IPv4：特殊域名
   - tag: learn_sv4_seen

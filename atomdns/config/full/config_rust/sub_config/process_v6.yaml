@@ -43,8 +43,10 @@ plugins:
         exec: fast_mark 21
       - matches: [fast_mark 21, "!flag cn_fakeip"]
         exec: $sequence_addrealiplist_exit          #定义: sub_config/forward_1.yaml
-      - matches: [fast_mark 21, flag cn_fakeip]
-        exec: $sequence_localfake_addlist_exit      #定义: sub_config/forward_1.yaml
+      - matches: [fast_mark 21, flag cn_fakeip]     # 改要国内 FakeIP（先记忆：带缓存的序列命中缓存时会提前返回）
+        exec:
+          - $learn_direct_probed                    #记忆直连；定义: sub_config/route_learner.yaml
+          - $sequence_localfake_exit                #定义: sub_config/forward_1.yaml
       - matches: fast_mark 21
         exec: exit
       # 4. 其余的都有非国内 IPv6（没有 IPv6 的在第 2 步已经结束）：代理

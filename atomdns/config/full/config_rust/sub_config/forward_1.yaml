@@ -5,20 +5,21 @@
 # 查哪个上游、要不要先看缓存、要不要把结果记入学习名单、最后 exit 结束整个查询。
 # 每个序列开头的 flow_setter 把「走了哪个序列、哪个上游」写进审计记录。
 #
-# 命名规则：sequence_<去向>[_addlist][_exit][_requery]
+# 命名规则：sequence_<去向>[_addlist|_sv4][_exit][_requery]
 #   去向   local       国内 DNS，返回真实 IP
 #          localfake   国内 FakeIP（外部 FakeIP 服务，cn_fakeip 开启时用）
 #          google      国外 DNS，返回真实 IP（google_node 带 ECS，在 forward_nocn_ecs.yaml）
 #          fakeip      代理：按「DNS 分流模式」给 FakeIP（proxy_fakeip）或国外真实 IP（proxy_realip）
-#   addlist  同时把域名记入学习名单（直连类记「记忆直连」，代理类记「记忆代理」）
+#   addlist  同时把域名记入学习名单（直连类记「记忆直连」，代理类记「记忆代理」）。只有列表外探测（process_v4.yaml）用它：
+#            静态名单（白名单、直连域名、中国域名、灰名单、代理域名、非中国域名）的判断永远优先于学习结果，记了也用不上，所以不记
+#   sv4      刷新时用：国内没有 IPv4、国外有非国内 IPv4 时记为「特殊域名」并改走代理
 #   exit     最后执行 exit 结束整个查询
 #   requery  刷新分流缓存时用的版本：国内没有结果会再问国外，并记忆无 V4 / 无 V6 / 特殊域名
 # 带缓存（cache_cn / cache_google / cache_cnmihomo）的序列命中缓存时会提前把结果交回调用者，调用者需要自己再 exit。
 #
 # 本文件的顺序：上游组（nocnfake、cnfake）→ 国内 → 国内 FakeIP → 国外 → 代理（FakeIP / 真实 IP）→ 国内入口。
 plugins:
-#使用前面定义的内部dns服务器，并定义可复用的序列，文件名中的1代表了层级
-#转发请求至sing-box/mihome dns请求fakeip
+#向 sing-box / mihomo 请求代理域名的 FakeIP
   - tag: nocnfake
     type: aliapi
     args:
@@ -29,7 +30,7 @@ plugins:
         - tag: sing-box
           addr: "udp://127.0.0.1:6666"
 
-#向mihomo请求国内的fakeip
+#向 mihomo 请求国内域名的 FakeIP
   - tag: cnfake
     type: aliapi
     args:
@@ -40,7 +41,7 @@ plugins:
         - tag: cnfake
           addr: "udp://127.0.0.1:1053"
 
-#缓存序列-国内域名realip
+#国内 DNS 要真实 IP 并结束（静态直连名单、cnfakeipfilter、兼容模式的记忆直连）
   - tag: sequence_local_exit
     type: sequence
     args:
@@ -49,6 +50,7 @@ plugins:
         exec: $cache_cn                             #定义: sub_config/cache.yaml
       - exec: $domestic                             #定义: sub_config/forward_local.yaml
       - exec: cname_remover
+      - exec: $learn_nov6_empty                     #AAAA 无全球单播 IPv6 且 rcode 为 0/3：记忆无V6（A 查询时什么都不做）；定义: sub_config/route_learner.yaml
       - exec: exit
 
   - tag: sequence_local_exit_requery
@@ -69,23 +71,11 @@ plugins:
       - exec: $learn_nov6_empty                     #AAAA 无全球单播 IPv6 且 rcode 为 0/3：记忆无V6；定义: sub_config/route_learner.yaml
       - exec: exit
 
-#缓存序列-国内域名realip
-  - tag: sequence_local_addlist_exit
+#刷新时静态直连名单的域名：国内没有 IPv4 时再问国外，国外有非国内 IPv4 就记为特殊域名并改走代理
+  - tag: sequence_local_sv4_exit_requery
     type: sequence
     args:
-      - exec: flow_setter sequence=sequence_local_addlist_exit upstream=domestic
-      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
-        exec: $cache_cn                             #定义: sub_config/cache.yaml
-      - exec: $domestic                             #定义: sub_config/forward_local.yaml
-      - exec: cname_remover
-      - exec: $learn_direct_listed                  #记忆直连（静态名单的名字）；定义: sub_config/route_learner.yaml
-      - exec: $learn_nov6_empty                     #AAAA 无全球单播 IPv6 且 rcode 为 0/3：记忆无V6（A 查询时什么都不做）；定义: sub_config/route_learner.yaml
-      - exec: exit
-
-  - tag: sequence_local_addlist_exit_requery
-    type: sequence
-    args:
-      - exec: flow_setter sequence=sequence_local_addlist_exit_requery upstream=domestic
+      - exec: flow_setter sequence=sequence_local_sv4_exit_requery upstream=domestic
       - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cn                             #定义: sub_config/cache.yaml
       - exec: $domestic                             #定义: sub_config/forward_local.yaml
@@ -97,7 +87,7 @@ plugins:
         exec: fast_mark 19
       - matches: fast_mark 19
         exec:
-          - flow_setter sequence=sequence_local_addlist_exit_requery upstream=foreign
+          - flow_setter sequence=sequence_local_sv4_exit_requery upstream=foreign
           - $foreign                                #定义: sub_config/forward_nocn.yaml
       - exec: $learn_nov4_empty                     #A 无 IPv4 且 rcode 为 0/3：记忆无V4；定义: sub_config/route_learner.yaml
       - matches:
@@ -106,9 +96,9 @@ plugins:
         - "!resp_ip $geoip_cn"                      #但是没有cn ip；定义: sub_config/rule_set.yaml
         - flag dns_mode=fakeip                      #FakeIP 分流：改问 sing-box 要 FakeIP；定义: sub_config/flags.yaml
         exec:
-          - $learn_proxy_requery                    #记忆代理 + 特殊域名；定义: sub_config/route_learner.yaml
+          - $learn_sv4_listed                       #特殊域名；定义: sub_config/route_learner.yaml
           - drop_resp
-          - flow_setter sequence=sequence_local_addlist_exit_requery upstream=nocnfake
+          - flow_setter sequence=sequence_local_sv4_exit_requery upstream=nocnfake
           - $nocnfake                               #定义: 本文件
           - exit
       - matches:
@@ -117,11 +107,11 @@ plugins:
         - "!resp_ip $geoip_cn"                      #但是没有cn ip；定义: sub_config/rule_set.yaml
         - flag dns_mode=realip                      #RealIP 分流：保留国外真实 IP，不问 sing-box（否则 FakeIP 会进共用缓存）
         exec:
-          - $learn_proxy_requery                    #记忆代理 + 特殊域名；定义: sub_config/route_learner.yaml
+          - $learn_sv4_listed                       #特殊域名；定义: sub_config/route_learner.yaml
           - exit
-      - exec: $learn_direct_listed                  #记忆直连（静态名单的名字）；定义: sub_config/route_learner.yaml
       - exec: exit
 
+#国内 DNS 要真实 IP，不结束（列表外探测、指定客户端直连、其他查询类型）
   - tag: sequence_local
     type: sequence
     args:
@@ -132,26 +122,15 @@ plugins:
       - exec: cname_remover
 
 
-#仅加入清单并结束整个查询
+#列表外探测到国内 IP：记忆直连，返回刚才拿到的真实 IP 并结束
   - tag: sequence_addrealiplist_exit
     type: sequence
     args:
       - exec: $learn_direct_probed                  #探测应答含直连 IP/国内 IP：记忆直连；定义: sub_config/route_learner.yaml
       - exec: exit
 
-#向mihomo请求国内的fakeip序列、加入清单并结束
-  - tag: sequence_localfake_addlist_exit
-    type: sequence
-    args:
-      - exec: flow_setter sequence=sequence_localfake_addlist_exit upstream=cnfake
-      - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
-        exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml
-      - exec: $cnfake                               #定义: 本文件
-      - exec: ttl 5
-      - exec: $learn_direct_listed                  #记忆直连（静态名单的名字）；定义: sub_config/route_learner.yaml
-      - exec: exit
-
-  - tag: sequence_localfake_addlist_exit_requery
+#刷新时静态直连名单的域名（cn_fakeip 开启）：同 sequence_local_sv4_exit_requery，直连时改要国内 FakeIP
+  - tag: sequence_localfake_sv4_exit_requery
     type: sequence
     args:
       - exec: $domestic                             #定义: sub_config/forward_local.yaml
@@ -163,7 +142,7 @@ plugins:
         exec: fast_mark 19
       - matches: fast_mark 19
         exec:
-          - flow_setter sequence=sequence_localfake_addlist_exit_requery upstream=foreign
+          - flow_setter sequence=sequence_localfake_sv4_exit_requery upstream=foreign
           - $foreign                                #定义: sub_config/forward_nocn.yaml
       - exec: $learn_nov4_empty                     #A 无 IPv4 且 rcode 为 0/3：记忆无V4；定义: sub_config/route_learner.yaml
       - matches:
@@ -172,9 +151,9 @@ plugins:
         - "!resp_ip $geoip_cn"                      #但是没有cn ip；定义: sub_config/rule_set.yaml
         - flag dns_mode=fakeip                      #FakeIP 分流：改问 sing-box 要 FakeIP；定义: sub_config/flags.yaml
         exec:
-          - $learn_proxy_requery                    #记忆代理 + 特殊域名；定义: sub_config/route_learner.yaml
+          - $learn_sv4_listed                       #特殊域名；定义: sub_config/route_learner.yaml
           - drop_resp
-          - flow_setter sequence=sequence_localfake_addlist_exit_requery upstream=nocnfake
+          - flow_setter sequence=sequence_localfake_sv4_exit_requery upstream=nocnfake
           - $nocnfake                               #定义: 本文件
           - exit
       - matches:
@@ -183,18 +162,17 @@ plugins:
         - "!resp_ip $geoip_cn"                      #但是没有cn ip；定义: sub_config/rule_set.yaml
         - flag dns_mode=realip                      #RealIP 分流：保留国外真实 IP，不问 sing-box（否则 FakeIP 会进共用缓存）
         exec:
-          - $learn_proxy_requery                    #记忆代理 + 特殊域名；定义: sub_config/route_learner.yaml
+          - $learn_sv4_listed                       #特殊域名；定义: sub_config/route_learner.yaml
           - exit
       - exec: drop_resp
-      - exec: flow_setter sequence=sequence_localfake_addlist_exit_requery upstream=cnfake
+      - exec: flow_setter sequence=sequence_localfake_sv4_exit_requery upstream=cnfake
       - matches: flag lazy_cache                    #定义: sub_config/flags.yaml
         exec: $cache_cnmihomo                       #定义: sub_config/cache.yaml
       - exec: $cnfake                               #定义: 本文件
       - exec: ttl 5
-      - exec: $learn_direct_listed                  #记忆直连（静态名单的名字）；定义: sub_config/route_learner.yaml
       - exec: exit
 
-#向mihomo请求国内的fakeip序列并结束
+#向 mihomo 请求国内 FakeIP 并结束
   - tag: sequence_localfake_exit
     type: sequence
     args:
@@ -250,7 +228,7 @@ plugins:
           - ttl 5
       - exec: exit
 
-#缓存序列-列表外域名
+#国外 DNS 要真实 IP，不结束
   - tag: sequence_google
     type: sequence
     args:
@@ -260,7 +238,7 @@ plugins:
       - exec: $foreign                              #定义: sub_config/forward_nocn.yaml
       - exec: cname_remover
 
-#缓存序列-列表外域名
+#国外 DNS 要真实 IP 并结束（realiplist）
   - tag: sequence_google_exit
     type: sequence
     args:
@@ -307,7 +285,7 @@ plugins:
       - exec: cname_remover
       - exec: exit
 
-#代理域名响应入口：根据 DNS 分流模式返回 FakeIP 或 RealIP，并加入记忆代理清单后结束
+#列表外探测到非国内 IP 的代理入口：根据 DNS 分流模式返回 FakeIP 或 RealIP，记忆代理后结束
   - tag: sequence_fakeip_addlist_exit
     type: sequence
     args:
@@ -317,7 +295,7 @@ plugins:
         exec: $sequence_proxy_realip_addlist_exit   #定义: 本文件
       - exec: exit
 
-#代理域名响应入口：根据 DNS 分流模式返回 FakeIP 或 RealIP 后结束
+#代理入口（静态代理名单、记忆代理）：根据 DNS 分流模式返回 FakeIP 或 RealIP 后结束
   - tag: sequence_fakeip_exit
     type: sequence
     args:
@@ -334,11 +312,11 @@ plugins:
       - exec: $sequence_local                       #定义: 本文件
       - exec: flow_setter sequence=sequence_local_in upstream=domestic
 
-#优先国外realip，失败则回退国内，不带缓存
-  - tag: "prefer_foreign_nocache"
-    type: "fallback"
+#DDNS 优先国外：先问国外要真实 IP，失败或 1 秒内没有应答再问国内，不带缓存
+  - tag: prefer_foreign_nocache
+    type: fallback
     args:
-      primary: foreign                                  # 主可执行插件的 tag
-      secondary: domestic                          # 副可执行插件的 tag
-      threshold: 1000                                       # 无响应回滚阈值。单位毫秒。默认 500 。
-      always_standby: false                            # 副可执行插件始终待命。 
+      primary: foreign                          #主上游组；定义: sub_config/forward_nocn.yaml
+      secondary: domestic                       #备用上游组；定义: sub_config/forward_local.yaml
+      threshold: 1000                           #主上游多少毫秒没有应答就启用备用（程序默认 500）
+      always_standby: false                     #true 时备用与主上游同时发出

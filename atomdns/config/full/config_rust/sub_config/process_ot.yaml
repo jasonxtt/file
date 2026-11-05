@@ -1,9 +1,33 @@
+# ==============================================================================
+# 其他查询类型（MX、TXT、SRV 等，A / AAAA 以外）
+# ==============================================================================
+# 谁调用：config_custom.yaml 的 sequence_6666 / sequence_requery。
+# 做什么：只决定问国内还是国外 DNS，优先级与 process_listed.yaml 相同（第一个命中的名单决定）：
+#           realiplist、灰名单、代理域名、非中国域名、记忆代理 → 国外
+#           白名单、直连域名、中国域名、cnfakeipfilter（cn_fakeip 开启时）→ 国内
+#           记忆直连：兼容模式国内，安全模式国外（与 A / AAAA 一样不问国内）
+#           其余（列表外）→ 国外
+#         不返回 FakeIP，也不写学习记忆。
 plugins:
-#处理非A、AAAA请求
   - tag: sequence_other
     type: sequence
     args:
-      - matches: fast_mark 16
-        exec: $sequence_local                       #geositecn向国内dns请求；定义: sub_config/forward_1.yaml
-      - matches: "!fast_mark 16"
-        exec: $sequence_google                      #!geositecn向国外dns请求；定义: sub_config/forward_1.yaml
+      - matches: fast_mark 9 7                      # realiplist、灰名单：国外
+        exec: [$sequence_google, exit]              #定义: sub_config/forward_1.yaml
+      - matches: [fast_mark 10, flag cn_fakeip]     # cnfakeipfilter：国内
+        exec: [$sequence_local, exit]               #定义: sub_config/forward_1.yaml
+      - matches: fast_mark 8                        # 白名单：国内
+        exec: [$sequence_local, exit]
+      - matches: fast_mark 15                       # 代理域名：国外
+        exec: [$sequence_google, exit]
+      - matches: fast_mark 13                       # 直连域名：国内
+        exec: [$sequence_local, exit]
+      - matches: fast_mark 14                       # 非中国域名：国外
+        exec: [$sequence_google, exit]
+      - matches: fast_mark 16                       # 中国域名：国内
+        exec: [$sequence_local, exit]
+      - matches: fast_mark 12                       # 记忆代理：国外
+        exec: [$sequence_google, exit]
+      - matches: [fast_mark 11, flag core_mode=compat]  # 记忆直连（兼容模式）：国内
+        exec: [$sequence_local, exit]
+      - exec: $sequence_google                      # 记忆直连（安全模式）和列表外：国外

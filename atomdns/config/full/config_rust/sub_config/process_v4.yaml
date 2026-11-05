@@ -5,7 +5,7 @@
 # 做什么：先向上游要一份真实应答，再看应答里的 IP 决定这个域名走直连还是代理：
 #           应答含 direct_ip 或 geoip_cn 的 IP  → 直连：记入「记忆直连」，返回国内 IP（cn_fakeip 开启则要国内 FakeIP）
 #           应答有其他 IPv4                     → 代理：按 DNS 分流模式返回 FakeIP 或国外真实 IP，记入「记忆代理」
-#           应答没有 IPv4                       → 见下面第三条
+#           应答没有 IPv4                       → 见下面第二条
 #         第一次问谁由「核心运行模式」决定：兼容模式问国内；安全模式问国外（带 ECS）。
 #
 # 几点背景：
@@ -35,8 +35,10 @@ plugins:
         exec: fast_mark 21
       - matches: [fast_mark 21, "!flag cn_fakeip"]  # 直接返回刚才拿到的真实 IP
         exec: $sequence_addrealiplist_exit          #定义: sub_config/forward_1.yaml
-      - matches: [fast_mark 21, flag cn_fakeip]     # 改要国内 FakeIP
-        exec: $sequence_localfake_addlist_exit      #定义: sub_config/forward_1.yaml
+      - matches: [fast_mark 21, flag cn_fakeip]     # 改要国内 FakeIP（先记忆：带缓存的序列命中缓存时会提前返回）
+        exec:
+          - $learn_direct_probed                    #记忆直连；定义: sub_config/route_learner.yaml
+          - $sequence_localfake_exit                #定义: sub_config/forward_1.yaml
       - matches: fast_mark 21
         exec: exit
       # 3. 其他 IPv4：代理
@@ -78,7 +80,9 @@ plugins:
       - matches: [fast_mark 21, "!flag cn_fakeip"]
         exec: $sequence_addrealiplist_exit          #定义: sub_config/forward_1.yaml
       - matches: [fast_mark 21, flag cn_fakeip]
-        exec: $sequence_localfake_addlist_exit      #定义: sub_config/forward_1.yaml
+        exec:
+          - $learn_direct_probed                    #定义: sub_config/route_learner.yaml
+          - $sequence_localfake_exit                #定义: sub_config/forward_1.yaml
       - matches: fast_mark 21
         exec: exit
       # 4. 其他 IPv4：代理

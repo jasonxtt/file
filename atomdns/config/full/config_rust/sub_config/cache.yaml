@@ -5,7 +5,7 @@
 #改动其中任何一项，对应缓存会以空缓存重新开始。
 #label 是 WebUI 里显示的中文名（可选，不写就显示 tag；改它不影响缓存内容）。
 plugins:
-#全部缓存 第1层缓存 直面客户端
+#全局缓存（兼容模式）：直面客户端，最先查；会缓存 FakeIP
   - tag: cache_all
     type: cache
     args:
@@ -18,20 +18,20 @@ plugins:
       dump_file: cache/cache_all.dump
       dump_interval: 21600
 
-#全部缓存 第1层缓存 直面客户端
+#全局缓存（安全模式）：与上面相同，单独存放，切换核心运行模式时两边的内容互不影响
   - tag: cache_all_noleak
     type: cache
     args:
       label: "全局缓存·安全模式"
       size: 100000
       lazy_cache_ttl: 604800
-      exclude_ip:
+#      exclude_ip:
 #        - 28.0.0.0/8
 #        - fc00::/18
       dump_file: cache/cache_all_noleak.dump
       dump_interval: 21600
 
-#中国域名列表的过期缓存
+#国内查询缓存：直连域名的国内 DNS 应答（sequence_local*）
   - tag: cache_cn
     type: cache
     args:
@@ -41,7 +41,7 @@ plugins:
       dump_file: cache/cache_cn.dump
       dump_interval: 21600
 
-#列表外域名的过期缓存
+#国外查询缓存：国外 DNS 的真实 IP 应答（sequence_google*）
   - tag: cache_google
     type: cache
     args:
@@ -51,6 +51,7 @@ plugins:
       dump_file: cache/cache_google.dump
       dump_interval: 21600
 
+#国外查询缓存·带 ECS：列表外域名首次查询（安全模式）和安全模式记忆直连（sequence_google_node），不受「分组缓存」开关控制
   - tag: cache_google_node
     type: cache
     args:
@@ -61,7 +62,7 @@ plugins:
       dump_file: cache/cache_google_node.dump
       dump_interval: 21600
 
-#cnmihomo fakeip过期缓存
+#国内 FakeIP 缓存：cn_fakeip 开启时向 mihomo 要到的国内 FakeIP
   - tag: cache_cnmihomo
     type: cache
     args:
